@@ -15,6 +15,7 @@ export interface Hole {
 }
 
 export enum HoleType {
+  'half' = -0.5,
   'none' = -1,
   'empty' = 0,
   'one' = 1,
@@ -84,7 +85,7 @@ export class Board {
     if (position.col < 0 || position.col > columnMax) {
       return true;
     }
-    return this.getHoleType(position) === HoleType.none;
+    return this.getHoleType(position) < 0;
   }
 
   getNeighborPosition(

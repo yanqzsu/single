@@ -57,16 +57,16 @@ export class AppComponent implements OnInit {
   }
 
   startMove(event: TouchEvent | MouseEvent, row?: number, col?: number) {
-    if (row !== undefined && row >= 0 && col !== undefined && col >= 0) {
-      const selectHole = this.borderStatus[row][col];
-      if (selectHole.type > 0) {
-        this.selectedPosition = {
-          col: col,
-          row: row,
-        };
+    if (row !== undefined && col !== undefined) {
+      const position = {
+        col,
+        row,
+      };
+      if (!this.boardService.board.isOutrange(position)) {
+        this.selectedPosition = position;
       }
     }
-    if (this.selectedPosition.col < 0 && this.selectedPosition.row < 0) {
+    if (this.boardService.board.isOutrange(this.selectedPosition)) {
       return;
     }
     if (

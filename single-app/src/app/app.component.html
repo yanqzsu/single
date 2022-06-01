@@ -23,19 +23,8 @@
 
   <div class="game-container">
     <div class="grid-container">
-      <div
-        class="grid-row"
-        *ngFor="let row of borderStatus; index as i; odd as odd; even as even"
-      >
-        <app-hole
-          *ngIf="
-            (boardType === Board_Type.triangularOdd && odd) ||
-            (boardType === Board_Type.triangularEven && even)
-          "
-          class="half"
-          [hole]="{ type: -1, status: 0 }"
-        ></app-hole>
-        <ng-container *ngFor="let grid of row; index as j; even as even">
+      <div class="grid-row" *ngFor="let row of borderStatus; index as i">
+        <ng-container *ngFor="let grid of row; index as j">
           <app-hole
             [hole]="borderStatus[i][j]"
             (mousedown)="startMove($event, i, j)"
@@ -44,14 +33,6 @@
             (touchend)="endMove($event, i, j)"
           ></app-hole>
         </ng-container>
-        <app-hole
-          *ngIf="
-            (boardType === Board_Type.triangularOdd && odd) ||
-            (boardType === Board_Type.triangularEven && even)
-          "
-          class="half"
-          [hole]="{ type: -1, status: 0 }"
-        ></app-hole>
       </div>
     </div>
   </div>
