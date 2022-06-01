@@ -1,0 +1,18 @@
+@import "../../variables.scss";
+
+:host {
+  all: unset;
+  display: inline-block;
+  background: darken($first-color, 0%);
+  border-radius: 3px;
+  text-align: center;
+  text-decoration: none;
+  color: $text-color;
+  height: 40px;
+  line-height: 42px;
+}
+
+:host:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 17px rgba(0, 0, 0, 0.35);
+}

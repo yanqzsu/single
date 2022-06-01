@@ -1,0 +1,79 @@
+@import "../../variables.scss";
+
+.overlay {
+  // pointer-events: none;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  background-color: #00000073;
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0);
+  transition: all 0.25s;
+  z-index: 1000;
+  &.popup {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+  }
+
+  .backdrop {
+    z-index: 1000;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    cursor: auto;
+    pointer-events: none;
+    &.enable {
+      pointer-events: auto;
+      cursor: pointer;
+    }
+  }
+
+  .content {
+    // pointer-events: auto;
+    position: absolute;
+    overflow: auto;
+    border-radius: 6px 0px 0px 6px;
+    box-shadow: 0 3px 15px -2px #222;
+    padding: 20px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 255, 255, 0.8);
+    height: 300px;
+    width: 70vmin;
+    max-height: 70vmin;
+    z-index: 1001;
+    // background: linear-gradient(red 0 0) top/100% calc(100% - 40px) no-repeat,
+    //   conic-gradient(from -45deg at bottom, #0000, red 1deg 89deg, #0000 90deg)
+    //     bottom/80px 40px repeat-x;
+    // background-image: radial-gradient(
+    //     circle at right top,
+    //     #fff,
+    //     #fff 10px,
+    //     transparent 11px
+    //   ),
+    //   radial-gradient(circle at right bottom, #fff, #fff 10px, transparent 11px);
+  }
+  // .content:after {
+  //   content: "";
+  //   position: absolute;
+  //   top: 0px;
+  //   bottom: 0px;
+  //   left: -10px;
+  //   width: 20px;
+  //   height: 100%;
+  //   background: radial-gradient(
+  //     circle,
+  //     transparent,
+  //     transparent 8px,
+  //     rgba(255, 255, 255, 0.8) 10px
+  //   );
+  //   background-size: 20px 20px;
+  // }
+}

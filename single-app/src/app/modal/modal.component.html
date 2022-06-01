@@ -1,0 +1,10 @@
+<div class="overlay" [class.popup]="!!templateRef">
+  <div
+    class="backdrop"
+    (click)="onBackdropClick()"
+    [class.enable]="backdrop"
+  ></div>
+  <div class="content">
+    <ng-container *ngTemplateOutlet="templateRef"></ng-container>
+  </div>
+</div>

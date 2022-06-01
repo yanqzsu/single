@@ -1,0 +1,9 @@
+<div class="hole" [ngClass]="statusClass">
+  <div class="border" *ngIf="hole.type > -1">
+    <app-peg
+      [type]="hole.type"
+      [jumpable]="jumpable"
+      [selected]="selected"
+    ></app-peg>
+  </div>
+</div>

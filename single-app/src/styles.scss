@@ -1,0 +1,24 @@
+/* You can add global styles to this file, and also import other style files */
+
+@import "variables.scss";
+
+html,
+body {
+  $background-color: $third-color;
+  margin: 0;
+  padding: 0;
+  background: $background-color;
+  color: $text-color;
+  font-family: "Clear Sans", "Helvetica Neue", Arial, sans-serif;
+  font-size: 18px;
+  height: 100%;
+  width: 100%;
+}
+* {
+  box-sizing: border-box;
+}
+
+.global-scrollblock {
+  height: 100vh;
+  overflow-y: hidden;
+}

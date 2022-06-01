@@ -1,0 +1,104 @@
+<!-- <router-outlet></router-outlet> -->
+<div class="container">
+  <div class="heading">
+    <div class="title-container">
+      <h1 class="title">独行棋</h1>
+      <div class="slogan">不孤单</div>
+    </div>
+    <div class="scores-container">
+      <div class="card">
+        <label class="card-label">得分:</label>
+        <span class="card-value">{{ scoreStatus.score }}</span>
+      </div>
+      <div class="card">
+        <label class="card-label">剩余:</label>
+        <span class="card-value">{{ scoreStatus.remainingCount }}</span>
+      </div>
+      <div class="card">
+        <label class="card-label">步数:</label>
+        <span class="card-value">{{ scoreStatus.steps }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="game-container">
+    <div class="grid-container">
+      <div
+        class="grid-row"
+        *ngFor="let row of borderStatus; index as i; odd as odd; even as even"
+      >
+        <app-hole
+          *ngIf="
+            (boardType === Board_Type.triangularOdd && odd) ||
+            (boardType === Board_Type.triangularEven && even)
+          "
+          class="half"
+          [hole]="{ type: -1, status: 0 }"
+        ></app-hole>
+        <ng-container *ngFor="let grid of row; index as j; even as even">
+          <app-hole
+            [hole]="borderStatus[i][j]"
+            (mousedown)="startMove($event, i, j)"
+            (mouseup)="endMove($event)"
+            (touchstart)="startMove($event, i, j)"
+            (touchend)="endMove($event, i, j)"
+          ></app-hole>
+        </ng-container>
+        <app-hole
+          *ngIf="
+            (boardType === Board_Type.triangularOdd && odd) ||
+            (boardType === Board_Type.triangularEven && even)
+          "
+          class="half"
+          [hole]="{ type: -1, status: 0 }"
+        ></app-hole>
+      </div>
+    </div>
+  </div>
+
+  <div class="operation">
+    <button app-button (click)="undo()">悔棋</button>
+    <button app-button>新游戏</button>
+    <button app-button (click)="showGameOver()">自创棋局</button>
+    <button app-button (click)="showRanking()">排行榜</button>
+  </div>
+  <p class="game-intro">
+    Join the numbers and get to the <strong>2048 tile!</strong>
+  </p>
+</div>
+
+<ng-template #gameOver>
+  <div class="title">游戏结束</div>
+  <div class="desc"></div>
+  <div class="option">
+    <button app-button (click)="undo()">悔棋</button>
+    <button app-button>新游戏</button>
+  </div>
+</ng-template>
+
+<ng-template #ranking>
+  <h1>排行榜</h1>
+  <ol>
+    <li>1</li>
+    <li>2</li>
+    <li>3</li>
+    <li>4</li>
+    <li>5</li>
+    <li>6</li>
+    <li>7</li>
+    <li>1</li>
+    <li>2</li>
+    <li>3</li>
+    <li>4</li>
+    <li>5</li>
+    <li>6</li>
+    <li>7</li>
+  </ol>
+</ng-template>
+
+<app-modal
+  [backdrop]="true"
+  [templateRef]="templateRef"
+  (backdropEvent)="clearOverlay()"
+>
+</app-modal>
