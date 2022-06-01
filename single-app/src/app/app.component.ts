@@ -51,7 +51,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.boardService.boardStatusSubject.subscribe((status) => {
-      this.borderStatus = status;
+      this.borderStatus = [...status];
       this.boardType = this.boardService.board.boardType;
     });
   }
@@ -75,9 +75,9 @@ export class AppComponent implements OnInit {
     ) {
       return; // Ignore if still touching with one or more fingers
     }
-    const position = getEventPosition(event);
-    this.touchStartClientX = position.clientX;
-    this.touchStartClientY = position.clientY;
+    const touchPosition = getEventPosition(event);
+    this.touchStartClientX = touchPosition.clientX;
+    this.touchStartClientY = touchPosition.clientY;
     silentEvent(event);
   }
 
@@ -106,7 +106,7 @@ export class AppComponent implements OnInit {
     const absDy = Math.abs(dy);
     let direction;
     if (
-      this.boardService.board.boardType === BoardType.rectangular &&
+      this.boardType === BoardType.rectangular &&
       Math.max(absDx, absDy) > 10
     ) {
       direction =
@@ -118,7 +118,7 @@ export class AppComponent implements OnInit {
           ? Direction.down
           : Direction.up;
     } else if (
-      this.boardService.board.boardType === BoardType.diagonalRectangular &&
+      this.boardType === BoardType.diagonalRectangular &&
       Math.max(absDx, absDy) > 10
     ) {
       const radio = absDx / absDy;
@@ -142,8 +142,7 @@ export class AppComponent implements OnInit {
             : Direction.upLeft;
       }
     } else if (
-      (this.boardService.board.boardType === BoardType.triangularEven ||
-        this.boardService.board.boardType === BoardType.triangularOdd) &&
+      (this.boardType === BoardType.triangular) &&
       Math.max(absDx, absDy) > 10
     ) {
       const radio = absDx / absDy;
@@ -163,6 +162,8 @@ export class AppComponent implements OnInit {
 
     if (direction) {
       this.boardService.move(direction, this.selectedPosition, false);
+    } else {
+      this.boardService.updateStatus(this.selectedPosition);
     }
     silentEvent(event);
   }

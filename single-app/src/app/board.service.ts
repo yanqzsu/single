@@ -56,23 +56,23 @@ export class BoardService {
   triangleBoard = new Board(
     [
       [-1, -1, 0, -1, -1],
-      [-1, 1, 1, -1],
+      [-0.5, -1, 1, 1, -1,-0.5],
       [-1, 1, 1, 1, -1],
-      [1, 1, 1, 1],
+      [-0.5, 1, 1, 1, 1,-0.5],
       [1, 1, 1, 1, 1],
     ],
-    BoardType.triangularOdd
+    BoardType.triangular
   );
 
   triangleBoard2 = new Board(
     [
       [1, 1, 1, 1, 1],
-      [1, 1, 1, 1],
+      [-0.5, 1, 1, 1, 1,-0.5],
       [-1, 1, 1, 1, -1],
-      [-1, 1, 1, -1],
+      [-0.5, -1, 1, 1, -1,-0.5],
       [-1, -1, 0, -1, -1],
     ],
-    BoardType.triangularOdd
+    BoardType.triangular
   );
 
   triangleBoard3 = new Board(
@@ -83,7 +83,7 @@ export class BoardService {
       [-1, 1, 1, 1],
       [-0.5, -1, -1, 0, -0.5],
     ],
-    BoardType.triangularEven
+    BoardType.triangular
   );
   board: Board;
 
@@ -94,11 +94,12 @@ export class BoardService {
   boardStatusSubject = new BehaviorSubject<Hole[][]>([[]]);
 
   constructor() {
-    this.board = this.triangleBoard3;
+    this.board = this.triangleBoard2;
     this.initBoardStatus();
+    this.updateStatus();
   }
 
-  updateStatus(selected: Position): void {
+  updateStatus(selected?: Position): void {
     for (let row = 0; row < this.boardStatus.length; row++) {
       for (let col = 0; col < this.boardStatus[row].length; col++) {
         const position = { col, row };
@@ -106,20 +107,20 @@ export class BoardService {
         const neighborPositions = this.board.getNeighborPositions(position);
         const jumpable = neighborPositions.some((neighbor) => {
           const bypass = this.getHole(neighbor.bypass).type;
-          const spot = this.getHole(neighbor.spot).type;
-          if (hole.type > 0 && bypass > 0 && spot === 0) {
+          const target = this.getHole(neighbor.target).type;
+          if (hole.type > 0 && bypass > 0 && target === 0) {
             return true;
           }
           return false;
         });
         hole.status = jumpable ? HoleStatus.jumpable : HoleStatus.normal;
-        if (position.col === selected.col && position.row === selected.row) {
+        if (position.col === selected?.col && position.row === selected?.row) {
           hole.status = HoleStatus.selected;
           neighborPositions.forEach((neighbor) => {
             const bypass = this.getHole(neighbor.bypass);
-            const spot = this.getHole(neighbor.spot);
-            if (bypass.type > 0 && spot.type === 0) {
-              spot.status = HoleStatus.spot;
+            const target = this.getHole(neighbor.target);
+            if (bypass.type > 0 && target.type === 0) {
+              target.status = HoleStatus.target;
             }
           });
         }
@@ -133,23 +134,23 @@ export class BoardService {
     if (neighbor) {
       const start = this.getHole(selected);
       const bypass = this.getHole(neighbor.bypass);
-      const spot = this.getHole(neighbor.spot);
+      const target = this.getHole(neighbor.target);
       if (reverse) {
-        if (start.type > 0 && bypass.type > -1 && spot.type > 0) {
+        if (start.type > 0 && bypass.type > -1 && target.type > 0) {
           start.type = start.type - 1;
           bypass.type = bypass.type + 1;
-          spot.type = spot.type + 1;
-          spot.status = HoleStatus.selected;
-          this.updateStatus(neighbor.spot);
+          target.type = target.type + 1;
+          target.status = HoleStatus.selected;
+          this.updateStatus(neighbor.target);
           return true;
         }
       } else {
-        if (start.type > 0 && bypass.type > 0 && spot.type === HoleType.empty) {
+        if (start.type > 0 && bypass.type > 0 && target.type === HoleType.empty) {
           start.type = start.type - 1;
           bypass.type = bypass.type - 1;
-          spot.type = spot.type + 1;
-          spot.status = HoleStatus.selected;
-          this.updateStatus(neighbor.spot);
+          target.type = target.type + 1;
+          target.status = HoleStatus.selected;
+          this.updateStatus(neighbor.target);
           return true;
         }
       }

@@ -30,7 +30,7 @@ export enum HoleType {
 }
 
 export enum HoleStatus {
-  'spot' = 1, // empty spot
+  'target' = 1, // empty spot
   'jumpable' = 2, // jumpable peg
   'normal' = 3, // normal peg & spot
   'selected' = 4, // selected peg
@@ -43,15 +43,14 @@ export interface Position {
 
 export interface Neighbor {
   bypass: Position;
-  spot: Position;
+  target: Position;
   direction: Direction;
 }
 
 export enum BoardType {
   rectangular = 1,
   diagonalRectangular = 2,
-  triangularOdd = 3, // max cell count of a row is odd
-  triangularEven = 4, // max cell count of a row is even
+  triangular = 3,
 }
 
 export class Board {
@@ -103,134 +102,133 @@ export class Board {
     if (this.boardType === BoardType.rectangular) {
       neighbors.push({
         bypass: { col: col, row: row - 1 },
-        spot: { col: col, row: row - 2 },
+        target: { col: col, row: row - 2 },
         direction: Direction.up,
       });
       neighbors.push({
         bypass: { col: col, row: row + 1 },
-        spot: { col: col, row: row + 2 },
+        target: { col: col, row: row + 2 },
         direction: Direction.down,
       });
       neighbors.push({
         bypass: { col: col - 1, row },
-        spot: { col: col - 2, row },
+        target: { col: col - 2, row },
         direction: Direction.left,
       });
       neighbors.push({
         bypass: { col: col + 1, row },
-        spot: { col: col + 2, row },
+        target: { col: col + 2, row },
         direction: Direction.right,
       });
     } else if (this.boardType === BoardType.diagonalRectangular) {
       neighbors.push({
         bypass: { col: col, row: row - 1 },
-        spot: { col: col, row: row - 2 },
+        target: { col: col, row: row - 2 },
         direction: Direction.up,
       });
       neighbors.push({
         bypass: { col: col, row: row + 1 },
-        spot: { col: col, row: row + 2 },
+        target: { col: col, row: row + 2 },
         direction: Direction.down,
       });
       neighbors.push({
         bypass: { col: col - 1, row },
-        spot: { col: col - 2, row },
+        target: { col: col - 2, row },
         direction: Direction.left,
       });
       neighbors.push({
         bypass: { col: col + 1, row },
-        spot: { col: col + 2, row },
+        target: { col: col + 2, row },
         direction: Direction.right,
       });
       neighbors.push({
         bypass: { col: col - 1, row: row - 1 },
-        spot: { col: col - 2, row: row - 2 },
+        target: { col: col - 2, row: row - 2 },
         direction: Direction.upLeft,
       });
       neighbors.push({
         bypass: { col: col + 1, row: row - 1 },
-        spot: { col: col + 2, row: row - 2 },
+        target: { col: col + 2, row: row - 2 },
         direction: Direction.upRight,
       });
       neighbors.push({
         bypass: { col: col - 1, row: row + 1 },
-        spot: { col: col - 2, row: row + 2 },
+        target: { col: col - 2, row: row + 2 },
         direction: Direction.downLeft,
       });
       neighbors.push({
         bypass: { col: col + 1, row: row + 1 },
-        spot: { col: col + 2, row: row + 2 },
+        target: { col: col + 2, row: row + 2 },
         direction: Direction.downRight,
       });
     } else if (
-      this.boardType === BoardType.triangularEven ||
-      this.boardType === BoardType.triangularOdd
+      this.boardType === BoardType.triangular
     ) {
-      const isEven = this.map[position.row].length % 2 === 0;
+      const hasHalf = this.map[position.row][0] === HoleType.half;
       neighbors.push({
         bypass: { col: col - 1, row },
-        spot: { col: col - 2, row },
+        target: { col: col - 2, row },
         direction: Direction.left,
       });
       neighbors.push({
         bypass: { col: col + 1, row },
-        spot: { col: col + 2, row },
+        target: { col: col + 2, row },
         direction: Direction.right,
       });
-      if (isEven) {
+      if (hasHalf) {
         // left-top
         neighbors.push({
-          bypass: { col: col, row: row - 1 },
-          spot: { col: col - 1, row: row - 2 },
+          bypass: { col: col - 1, row: row - 1 },
+          target: { col: col - 1, row: row - 2 },
           direction: Direction.upLeft,
         });
         // right-top
         neighbors.push({
-          bypass: { col: col + 1, row: row - 1 },
-          spot: { col: col + 1, row: row - 2 },
+          bypass: { col: col, row: row - 1 },
+          target: { col: col + 1, row: row - 2 },
           direction: Direction.upRight,
         });
         // left-bottom
         neighbors.push({
-          bypass: { col: col, row: row + 1 },
-          spot: { col: col - 1, row: row + 2 },
+          bypass: { col: col -1, row: row + 1 },
+          target: { col: col - 1, row: row + 2 },
           direction: Direction.downLeft,
         });
         // right-bottom
         neighbors.push({
-          bypass: { col: col + 1, row: row + 1 },
-          spot: { col: col + 1, row: row + 2 },
+          bypass: { col: col, row: row + 1 },
+          target: { col: col + 1, row: row + 2 },
           direction: Direction.downRight,
         });
       } else {
         // left-top
         neighbors.push({
-          bypass: { col: col - 1, row: row - 1 },
-          spot: { col: col - 1, row: row - 2 },
+          bypass: { col: col, row: row - 1 },
+          target: { col: col - 1, row: row - 2 },
           direction: Direction.upLeft,
         });
         // right-top
         neighbors.push({
-          bypass: { col: col, row: row - 1 },
-          spot: { col: col + 1, row: row - 2 },
+          bypass: { col: col + 1, row: row - 1 },
+          target: { col: col + 1, row: row - 2 },
           direction: Direction.upRight,
         });
         // left-bottom
         neighbors.push({
-          bypass: { col: col - 1, row: row + 1 },
-          spot: { col: col - 1, row: row + 2 },
+          bypass: { col: col, row: row + 1 },
+          target: { col: col - 1, row: row + 2 },
           direction: Direction.downLeft,
         });
         // right-bottom
         neighbors.push({
-          bypass: { col: col, row: row + 1 },
-          spot: { col: col + 1, row: row + 2 },
+          bypass: { col: col + 1, row: row + 1 },
+          target: { col: col + 1, row: row + 2 },
           direction: Direction.downRight,
         });
       }
     }
     return neighbors.filter(
-      (value) => !this.isOutrange(value.bypass) && !this.isOutrange(value.spot)
+      (value) => !this.isOutrange(value.bypass) && !this.isOutrange(value.target)
     );
   }
 }

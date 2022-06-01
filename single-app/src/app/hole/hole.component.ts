@@ -12,25 +12,33 @@ export class HoleComponent {
     status: HoleStatus.normal,
   };
 
-  jumpable: boolean = false;
-  selected: boolean = false;
-
-  statusClass = {
-    'hole-spot':
-      this._hole.type === HoleType.empty &&
-      this._hole.status === HoleStatus.spot,
-    'hole-normal': this._hole.status === HoleStatus.normal,
-  };
-
-  pegClass = {};
+  holeClass: any;
+  spotClass: any;
+  pegClass: any;
 
   @Input()
   set hole(hole: Hole) {
     this._hole = hole;
-    this.selected =
-      this._hole.type > 0 && this._hole.status === HoleStatus.selected;
-    this.jumpable =
-      this._hole.type > 0 && this._hole.status === HoleStatus.jumpable;
+    this.holeClass = {
+      'hole-half': hole.type === HoleType.half,
+    };
+    this.spotClass = {
+      'spot-target': hole.status === HoleStatus.target,
+    };
+    this.pegClass = {
+      'peg-0': hole.type === HoleType.empty,
+      'peg-1': hole.type === HoleType.one,
+      'peg-2': hole.type === HoleType.two,
+      'peg-3': hole.type === HoleType.three,
+      'peg-4': hole.type === HoleType.four,
+      'peg-5': hole.type === HoleType.five,
+      'peg-6': hole.type === HoleType.six,
+      'peg-7': hole.type === HoleType.seven,
+      'peg-8': hole.type === HoleType.eight,
+      'peg-9': hole.type === HoleType.nine,
+      'peg-selected': hole.status === HoleStatus.selected && hole.type > 0,
+      'peg-jumpable': hole.status === HoleStatus.jumpable && hole.type > 0,
+    };
   }
   get hole(): Hole {
     return this._hole;
