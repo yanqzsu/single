@@ -14,8 +14,7 @@ export interface BoardStatus {
 }
 
 export class Board {
-  map: HoleType[][] = [[0]];
-  boardStatus: Hole[][] = [];
+  map: HoleType[][];
   boardType: BoardType;
   startPosition: Position | undefined;
   endPosition: Position | undefined;

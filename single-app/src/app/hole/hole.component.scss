@@ -55,12 +55,10 @@ $hole-size: calc((100vmin - 24px) / 7);
   width: 70%;
   height: 70%;
   border-radius: 50%;
-  box-shadow: 0px 3px 8px #aaa, inset 0px 2px 3px #fff;
+  box-shadow: 0px 3px 8px #aaa;
   &::before {
     content: "";
     display: block;
-    background: #fff;
-    border-top: 2px solid #ddd;
     position: absolute;
     top: -2px;
     left: -2px;
@@ -68,7 +66,6 @@ $hole-size: calc((100vmin - 24px) / 7);
     right: -2px;
     z-index: -1;
     border-radius: 50%;
-    box-shadow: inset 0px 2px 10px #ddd;
   }
   &.peg-selected {
     z-index: 20;
@@ -79,30 +76,48 @@ $hole-size: calc((100vmin - 24px) / 7);
 
 .peg.peg-1::before {
   background: $yellow-1;
+  $shadow-color: mix($yellow-1, #777);
+  box-shadow: inset 0px 2px 10px $shadow-color;
 }
 .peg.peg-2::before {
   background: $yellow-2;
+  $shadow-color: mix($yellow-2, #777);
+  box-shadow: inset 0px 2px 10px $shadow-color;
 }
 .peg.peg-3::before {
   background: $yellow-3;
+  $shadow-color: mix($yellow-3, #777);
+  box-shadow: inset 0px 2px 10px $shadow-color;
 }
 .peg.peg-4::before {
   background: $yellow-4;
+  $shadow-color: mix($yellow-4, #777);
+  box-shadow: inset 0px 2px 10px $shadow-color;
 }
 .peg.peg-5::before {
   background: $yellow-5;
+  $shadow-color: mix($yellow-5, #777);
+  box-shadow: inset 0px 2px 10px $shadow-color;
 }
 .peg.peg-6::before {
   background: $yellow-6;
+  $shadow-color: mix($yellow-6, #777);
+  box-shadow: inset 0px 2px 10px $shadow-color;
 }
 .peg.peg-7::before {
   background: $yellow-7;
+  $shadow-color: mix($yellow-7, #777);
+  box-shadow: inset 0px 2px 10px $shadow-color;
 }
 .peg.peg-8::before {
   background: $yellow-8;
+  $shadow-color: mix($yellow-8, #777);
+  box-shadow: inset 0px 2px 10px $shadow-color;
 }
 .peg.peg-9::before {
   background: $yellow-9;
+  $shadow-color: mix($yellow-9, #777);
+  box-shadow: inset 0px 2px 10px $shadow-color;
 }
 
 .peg.peg-jumpable::before {
