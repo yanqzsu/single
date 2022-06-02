@@ -1,0 +1,18 @@
+<div class="game-container">
+  <div class="grid-container">
+    <div
+      class="grid-row"
+      *ngFor="let row of boardStatus?.holeStatus; index as i"
+    >
+      <ng-container *ngFor="let grid of row; index as j">
+        <app-hole
+          [hole]="boardStatus.holeStatus[i][j]"
+          (mousedown)="startMove($event, i, j)"
+          (mouseup)="endMove($event)"
+          (touchstart)="startMove($event, i, j)"
+          (touchend)="endMove($event, i, j)"
+        ></app-hole>
+      </ng-container>
+    </div>
+  </div>
+</div>

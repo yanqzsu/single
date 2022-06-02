@@ -1,98 +1,25 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
-import {
-  Board,
-  BoardStatus,
-  BoardType,
-  Direction,
-  Hole,
-  HoleStatus,
-  HoleType,
-  Position,
-} from './type';
+import { Observable, ReplaySubject } from 'rxjs';
+import { Board, BoardStatus, BOARD_LIST } from './board.type';
+import { Direction, Hole, HoleStatus, HoleType, Position } from '../type';
 
 @Injectable({
   providedIn: 'root',
 })
 export class BoardService {
-  englishBoard = new Board(
-    [
-      [-1, -1, 1, 1, 1, -1, -1],
-      [-1, -1, 1, 1, 1, -1, -1],
-      [1, 1, 1, 1, 1, 1, 1],
-      [1, 1, 1, 0, 1, 1, 1],
-      [1, 1, 1, 1, 1, 1, 1],
-      [-1, -1, 1, 1, 1, -1, -1],
-      [-1, -1, 1, 1, 1, -1, -1],
-    ],
-    BoardType.rectangular
-  );
-
-  englishDiagonalBoard = new Board(
-    [
-      [-1, -1, 1, 1, 1, -1, -1],
-      [-1, -1, 1, 1, 1, -1, -1],
-      [1, 1, 1, 1, 1, 1, 1],
-      [1, 1, 1, 0, 1, 1, 1],
-      [1, 1, 1, 1, 1, 1, 1],
-      [-1, -1, 1, 1, 1, -1, -1],
-      [-1, -1, 1, 1, 1, -1, -1],
-    ],
-    BoardType.diagonalRectangular
-  );
-
-  englishDiagonalBoard2 = new Board(
-    [
-      [-1, -1, 1, 1, 1, -1, -1],
-      [-1, -1, 1, 1, 1, -1, -1],
-      [1, 6, 1, 2, 1, 1, 1],
-      [1, 1, 2, 0, 2, 1, 1],
-      [1, 1, 1, 2, 1, 1, 1],
-      [-1, -1, 1, 8, 1, -1, -1],
-      [-1, -1, 1, 1, 1, -1, -1],
-    ],
-    BoardType.diagonalRectangular
-  );
-
-  triangleBoard = new Board(
-    [
-      [-1, -1, 0, -1, -1],
-      [-0.5, -1, 1, 1, -1, -0.5],
-      [-1, 1, 1, 1, -1],
-      [-0.5, 1, 1, 1, 1, -0.5],
-      [1, 1, 1, 1, 1],
-    ],
-    BoardType.triangular
-  );
-
-  triangleBoard2 = new Board(
-    [
-      [1, 1, 1, 1, 1],
-      [-0.5, 1, 1, 1, 1, -0.5],
-      [-1, 1, 1, 1, -1],
-      [-0.5, -1, 1, 1, -1, -0.5],
-      [-1, -1, 0, -1, -1],
-    ],
-    BoardType.triangular
-  );
-
-  triangleBoard3 = new Board(
-    [
-      [-0.5, 1, 1, 1, -0.5],
-      [1, 1, 1, 1],
-      [-0.5, -1, 1, 1, -0.5],
-      [-1, 1, 1, 1],
-      [-0.5, -1, -1, 0, -0.5],
-    ],
-    BoardType.triangular
-  );
   private board!: Board;
   private holesStatus!: Hole[][];
   private boardStatusSubject = new ReplaySubject<BoardStatus>(1);
   boardStatus$: Observable<BoardStatus>;
+
   constructor() {
     this.boardStatus$ = this.boardStatusSubject.asObservable();
-    this.setBoard(this.englishBoard);
+    // random board for test
+    this.setBoard(
+      BOARD_LIST[
+        BOARD_LIST.list[Math.floor(Math.random() * BOARD_LIST.list.length)]
+      ] as Board
+    );
   }
 
   setBoard(board: Board): void {
@@ -108,18 +35,20 @@ export class BoardService {
         const position = { col, row };
         const hole = this.getHole(position);
         const neighborPositions = this.board.getNeighborPositions(position);
-        const jumpable = neighborPositions.some((neighbor) => {
-          const bypassType = this.getHole(neighbor.bypass).type;
-          const targetType = this.getHole(neighbor.target).type;
-          if (
-            hole.type > HoleType.empty &&
-            bypassType > HoleType.empty &&
-            targetType === HoleType.empty
-          ) {
-            return true;
+        const jumpable = neighborPositions.some(
+          (neighbor: { bypass: Position; target: Position }) => {
+            const bypassType = this.getHole(neighbor.bypass).type;
+            const targetType = this.getHole(neighbor.target).type;
+            if (
+              hole.type > HoleType.empty &&
+              bypassType > HoleType.empty &&
+              targetType === HoleType.empty
+            ) {
+              return true;
+            }
+            return false;
           }
-          return false;
-        });
+        );
         if (jumpable) {
           hole.status = HoleStatus.jumpable;
           jumpablePegCount += 1;
@@ -136,13 +65,18 @@ export class BoardService {
             ? HoleStatus.selectedJumpable
             : HoleStatus.selectedUnjumpable;
         const neighborPositions = this.board.getNeighborPositions(selected);
-        neighborPositions.forEach((neighbor) => {
-          const bypass = this.getHole(neighbor.bypass);
-          const target = this.getHole(neighbor.target);
-          if (bypass.type > HoleType.empty && target.type === HoleType.empty) {
-            target.status = HoleStatus.target;
+        neighborPositions.forEach(
+          (neighbor: { bypass: Position; target: Position }) => {
+            const bypass = this.getHole(neighbor.bypass);
+            const target = this.getHole(neighbor.target);
+            if (
+              bypass.type > HoleType.empty &&
+              target.type === HoleType.empty
+            ) {
+              target.status = HoleStatus.target;
+            }
           }
-        });
+        );
       }
     }
     const boardStatus: BoardStatus = {
@@ -188,18 +122,18 @@ export class BoardService {
     return false;
   }
 
-  deepClone<T>(obj: T[][]): T[][] {
+  private getHole(position: Position): Hole {
+    return this.holesStatus[position.row][position.col];
+  }
+
+  private deepClone<T>(obj: T[][]): T[][] {
     return obj.map((row) => row.slice());
     // return JSON.parse(JSON.stringify(obj));
   }
 
-  getHole(position: Position): Hole {
-    return this.holesStatus[position.row][position.col];
-  }
-
   private initBoardStatus(): void {
-    const holesStatus: Hole[][] = this.board.map.map((row) => {
-      return row.map((value) => {
+    const holesStatus: Hole[][] = this.board.map.map((row: any[]) => {
+      return row.map((value: any) => {
         return {
           type: value,
           status: HoleStatus.normal,

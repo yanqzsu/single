@@ -1,0 +1,40 @@
+@import "../../variables.scss";
+
+.game-container {
+  margin: 0 auto;
+  width: calc(100vmin - 24px);
+  height: calc(100vmin - 24px);
+  position: relative;
+  background-color: $second-color;
+  outline: 4px solid $second-color;
+  border: 4px solid $piece-color-highlight;
+}
+
+.grid-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+
+  .grid-row {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-evenly;
+  }
+
+  app-hole {
+    flex: 0;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: center;
+  }
+}
