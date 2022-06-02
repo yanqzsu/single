@@ -36,8 +36,14 @@ export class HoleComponent {
       'peg-7': hole.type === HoleType.seven,
       'peg-8': hole.type === HoleType.eight,
       'peg-9': hole.type === HoleType.nine,
-      'peg-selected': hole.status === HoleStatus.selected && hole.type > 0,
-      'peg-jumpable': hole.status === HoleStatus.jumpable && hole.type > 0,
+      'peg-selected':
+        (hole.status === HoleStatus.selectedJumpable ||
+          hole.status === HoleStatus.selectedUnjumpable) &&
+        hole.type > HoleType.empty,
+      'peg-jumpable':
+        (hole.status === HoleStatus.jumpable ||
+          hole.status === HoleStatus.selectedJumpable) &&
+        hole.type > HoleType.empty,
     };
   }
   get hole(): Hole {

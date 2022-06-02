@@ -31,9 +31,10 @@ export enum HoleType {
 
 export enum HoleStatus {
   'target' = 1, // empty spot
-  'jumpable' = 2, // jumpable peg
-  'normal' = 3, // normal peg & spot
-  'selected' = 4, // selected peg
+  'jumpable' = 2, // unselected jumpable peg
+  'normal' = 3, // normal peg
+  'selectedUnjumpable' = 4, // selected & unjumpable peg
+  'selectedJumpable' = 5, // selected & jumpable peg
 }
 
 export interface Position {
@@ -51,6 +52,12 @@ export enum BoardType {
   rectangular = 1,
   diagonalRectangular = 2,
   triangular = 3,
+}
+
+export interface BoardStatus {
+  board: Board;
+  holeStatus: Hole[][];
+  jumpablePegCount: number;
 }
 
 export class Board {
@@ -161,9 +168,7 @@ export class Board {
         target: { col: col + 2, row: row + 2 },
         direction: Direction.downRight,
       });
-    } else if (
-      this.boardType === BoardType.triangular
-    ) {
+    } else if (this.boardType === BoardType.triangular) {
       const hasHalf = this.map[position.row][0] === HoleType.half;
       neighbors.push({
         bypass: { col: col - 1, row },
@@ -190,7 +195,7 @@ export class Board {
         });
         // left-bottom
         neighbors.push({
-          bypass: { col: col -1, row: row + 1 },
+          bypass: { col: col - 1, row: row + 1 },
           target: { col: col - 1, row: row + 2 },
           direction: Direction.downLeft,
         });
@@ -228,7 +233,8 @@ export class Board {
       }
     }
     return neighbors.filter(
-      (value) => !this.isOutrange(value.bypass) && !this.isOutrange(value.target)
+      (value) =>
+        !this.isOutrange(value.bypass) && !this.isOutrange(value.target)
     );
   }
 }

@@ -16,7 +16,6 @@ $hole-size: calc((100vmin - 24px) / 7);
   }
 }
 
-
 .hole {
   width: $hole-size;
   display: inline-block;
@@ -106,7 +105,7 @@ $hole-size: calc((100vmin - 24px) / 7);
   background: $yellow-9;
 }
 
-.peg.peg-jumpable::before{
+.peg.peg-jumpable::before {
   background: $cyan-5;
   $border-color: mix($cyan-5, #777);
   box-shadow: inset 0px 2px 10px $border-color;

@@ -23,10 +23,13 @@
 
   <div class="game-container">
     <div class="grid-container">
-      <div class="grid-row" *ngFor="let row of borderStatus; index as i">
+      <div
+        class="grid-row"
+        *ngFor="let row of boardStatus?.holeStatus; index as i"
+      >
         <ng-container *ngFor="let grid of row; index as j">
           <app-hole
-            [hole]="borderStatus[i][j]"
+            [hole]="boardStatus.holeStatus[i][j]"
             (mousedown)="startMove($event, i, j)"
             (mouseup)="endMove($event)"
             (touchstart)="startMove($event, i, j)"

@@ -1,7 +1,7 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Operation, Status } from './app.service';
 import { BoardService } from './board.service';
-import { BoardType, Direction, Hole, Position } from './type';
+import { BoardStatus, BoardType, Direction, Position } from './type';
 import { getEventPosition, isTouchEvent, silentEvent } from './util/dom';
 
 @Component({
@@ -10,7 +10,6 @@ import { getEventPosition, isTouchEvent, silentEvent } from './util/dom';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit {
-  readonly Board_Type = BoardType;
   private readonly STEP_BONUS = 10;
   private readonly COMBO_BONUS = 2;
   private readonly MAX_COMBO_BONUS = 10;
@@ -43,16 +42,15 @@ export class AppComponent implements OnInit {
   @ViewChild('ranking')
   ranking!: TemplateRef<any>;
 
-  borderStatus: Hole[][] = [];
-
+  boardStatus!: BoardStatus;
   boardType: BoardType = BoardType.rectangular;
 
   constructor(private boardService: BoardService) {}
 
   ngOnInit(): void {
-    this.boardService.boardStatusSubject.subscribe((status) => {
-      this.borderStatus = [...status];
-      this.boardType = this.boardService.board.boardType;
+    this.boardService.boardStatus$.subscribe((status) => {
+      this.boardStatus = status;
+      this.boardType = status.board.boardType;
     });
   }
 
@@ -62,11 +60,11 @@ export class AppComponent implements OnInit {
         col,
         row,
       };
-      if (!this.boardService.board.isOutrange(position)) {
+      if (!this.boardStatus.board?.isOutrange(position)) {
         this.selectedPosition = position;
       }
     }
-    if (this.boardService.board.isOutrange(this.selectedPosition)) {
+    if (this.boardStatus.board?.isOutrange(this.selectedPosition)) {
       return;
     }
     if (
@@ -142,7 +140,7 @@ export class AppComponent implements OnInit {
             : Direction.upLeft;
       }
     } else if (
-      (this.boardType === BoardType.triangular) &&
+      this.boardType === BoardType.triangular &&
       Math.max(absDx, absDy) > 10
     ) {
       const radio = absDx / absDy;

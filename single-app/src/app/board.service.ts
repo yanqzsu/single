@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
 import {
   Board,
+  BoardStatus,
   BoardType,
   Direction,
   Hole,
@@ -56,9 +57,9 @@ export class BoardService {
   triangleBoard = new Board(
     [
       [-1, -1, 0, -1, -1],
-      [-0.5, -1, 1, 1, -1,-0.5],
+      [-0.5, -1, 1, 1, -1, -0.5],
       [-1, 1, 1, 1, -1],
-      [-0.5, 1, 1, 1, 1,-0.5],
+      [-0.5, 1, 1, 1, 1, -0.5],
       [1, 1, 1, 1, 1],
     ],
     BoardType.triangular
@@ -67,9 +68,9 @@ export class BoardService {
   triangleBoard2 = new Board(
     [
       [1, 1, 1, 1, 1],
-      [-0.5, 1, 1, 1, 1,-0.5],
+      [-0.5, 1, 1, 1, 1, -0.5],
       [-1, 1, 1, 1, -1],
-      [-0.5, -1, 1, 1, -1,-0.5],
+      [-0.5, -1, 1, 1, -1, -0.5],
       [-1, -1, 0, -1, -1],
     ],
     BoardType.triangular
@@ -85,48 +86,71 @@ export class BoardService {
     ],
     BoardType.triangular
   );
-  board: Board;
-
-  get boardStatus(): Hole[][] {
-    return this.boardStatusSubject.value;
+  private board!: Board;
+  private holesStatus!: Hole[][];
+  private boardStatusSubject = new ReplaySubject<BoardStatus>(1);
+  boardStatus$: Observable<BoardStatus>;
+  constructor() {
+    this.boardStatus$ = this.boardStatusSubject.asObservable();
+    this.setBoard(this.englishBoard);
   }
 
-  boardStatusSubject = new BehaviorSubject<Hole[][]>([[]]);
-
-  constructor() {
-    this.board = this.triangleBoard2;
+  setBoard(board: Board): void {
+    this.board = board;
     this.initBoardStatus();
     this.updateStatus();
   }
 
   updateStatus(selected?: Position): void {
-    for (let row = 0; row < this.boardStatus.length; row++) {
-      for (let col = 0; col < this.boardStatus[row].length; col++) {
+    let jumpablePegCount = 0;
+    for (let row = 0; row < this.holesStatus.length; row++) {
+      for (let col = 0; col < this.holesStatus[row].length; col++) {
         const position = { col, row };
         const hole = this.getHole(position);
         const neighborPositions = this.board.getNeighborPositions(position);
         const jumpable = neighborPositions.some((neighbor) => {
-          const bypass = this.getHole(neighbor.bypass).type;
-          const target = this.getHole(neighbor.target).type;
-          if (hole.type > 0 && bypass > 0 && target === 0) {
+          const bypassType = this.getHole(neighbor.bypass).type;
+          const targetType = this.getHole(neighbor.target).type;
+          if (
+            hole.type > HoleType.empty &&
+            bypassType > HoleType.empty &&
+            targetType === HoleType.empty
+          ) {
             return true;
           }
           return false;
         });
-        hole.status = jumpable ? HoleStatus.jumpable : HoleStatus.normal;
-        if (position.col === selected?.col && position.row === selected?.row) {
-          hole.status = HoleStatus.selected;
-          neighborPositions.forEach((neighbor) => {
-            const bypass = this.getHole(neighbor.bypass);
-            const target = this.getHole(neighbor.target);
-            if (bypass.type > 0 && target.type === 0) {
-              target.status = HoleStatus.target;
-            }
-          });
+        if (jumpable) {
+          hole.status = HoleStatus.jumpable;
+          jumpablePegCount += 1;
+        } else {
+          hole.status = HoleStatus.normal;
         }
       }
     }
-    this.boardStatusSubject.next(this.deepClone(this.boardStatus));
+    if (selected) {
+      const hole = this.getHole(selected);
+      if (hole.type > HoleType.empty) {
+        hole.status =
+          hole.status === HoleStatus.jumpable
+            ? HoleStatus.selectedJumpable
+            : HoleStatus.selectedUnjumpable;
+        const neighborPositions = this.board.getNeighborPositions(selected);
+        neighborPositions.forEach((neighbor) => {
+          const bypass = this.getHole(neighbor.bypass);
+          const target = this.getHole(neighbor.target);
+          if (bypass.type > HoleType.empty && target.type === HoleType.empty) {
+            target.status = HoleStatus.target;
+          }
+        });
+      }
+    }
+    const boardStatus: BoardStatus = {
+      jumpablePegCount,
+      holeStatus: this.deepClone<Hole>(this.holesStatus),
+      board: this.board,
+    };
+    this.boardStatusSubject.next(boardStatus);
   }
 
   move(direction: Direction, selected: Position, reverse: boolean): boolean {
@@ -136,20 +160,26 @@ export class BoardService {
       const bypass = this.getHole(neighbor.bypass);
       const target = this.getHole(neighbor.target);
       if (reverse) {
-        if (start.type > 0 && bypass.type > -1 && target.type > 0) {
+        if (
+          start.type > HoleType.empty &&
+          bypass.type >= HoleType.empty &&
+          target.type >= HoleType.empty
+        ) {
           start.type = start.type - 1;
           bypass.type = bypass.type + 1;
           target.type = target.type + 1;
-          target.status = HoleStatus.selected;
           this.updateStatus(neighbor.target);
           return true;
         }
       } else {
-        if (start.type > 0 && bypass.type > 0 && target.type === HoleType.empty) {
+        if (
+          start.type > HoleType.empty &&
+          bypass.type > HoleType.empty &&
+          target.type === HoleType.empty
+        ) {
           start.type = start.type - 1;
           bypass.type = bypass.type - 1;
           target.type = target.type + 1;
-          target.status = HoleStatus.selected;
           this.updateStatus(neighbor.target);
           return true;
         }
@@ -158,17 +188,17 @@ export class BoardService {
     return false;
   }
 
-  deepClone(obj: any): any {
-    // this.pieceArray = this.pieceArray.map((arr) => arr.slice());
-    return JSON.parse(JSON.stringify(obj));
+  deepClone<T>(obj: T[][]): T[][] {
+    return obj.map((row) => row.slice());
+    // return JSON.parse(JSON.stringify(obj));
   }
 
   getHole(position: Position): Hole {
-    return this.boardStatus[position.row][position.col];
+    return this.holesStatus[position.row][position.col];
   }
 
   private initBoardStatus(): void {
-    const boardStatus: Hole[][] = this.board.map.map((row) => {
+    const holesStatus: Hole[][] = this.board.map.map((row) => {
       return row.map((value) => {
         return {
           type: value,
@@ -176,6 +206,6 @@ export class BoardService {
         };
       });
     });
-    this.boardStatusSubject.next(boardStatus);
+    this.holesStatus = holesStatus;
   }
 }
