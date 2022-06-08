@@ -3,6 +3,7 @@
 $border-width: 4px;
 $border-style: solid $border-width black;
 $hole-size: calc((100vmin - 24px) / 7);
+$color: $gray-4;
 
 @keyframes pop {
   0% {
@@ -18,18 +19,34 @@ $hole-size: calc((100vmin - 24px) / 7);
 
 @keyframes rotate {
   50% {
-      transform: translate(-50%, -50%) rotate(180deg);
-  } 100% {
-      transform: translate(-50%, -50%) rotate(360deg);
+    transform: translate(-50%, -50%) rotate(180deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    box-shadow: 0 0 0 0 rgba($color, 0.3), 0 0 0 1px rgba($color, 0.3),
+      0 0 0 1px rgba($color, 0.3), 0 0 0 3px rgba($color, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba($color, 0.3), 0 0 0 1px rgba($color, 0.3),
+      0 0 0 5px rgba($color, 0), 0 0 0 10px rgba($color, 0);
   }
 }
 
 @mixin hole-color($hole-color) {
-  background-image: linear-gradient(to bottom, $hole-color, darken($hole-color, 10%)); 
+  background-image: linear-gradient(
+    to bottom,
+    $hole-color,
+    darken($hole-color, 10%)
+  );
   background-color: $hole-color;
-  box-shadow: 0px 3px 8px $gray-7, inset 0px 3px 1px 1px $hole-color,inset 0px -2px 1px 1px darken($hole-color, 15%);
+  box-shadow: 0px 3px 8px $gray-7, inset 0px 3px 1px 1px $hole-color,
+    inset 0px -2px 1px 1px darken($hole-color, 15%);
 }
-
 
 .hole {
   width: $hole-size;
@@ -77,30 +94,24 @@ $hole-size: calc((100vmin - 24px) / 7);
 }
 .peg.peg-2 {
   @include hole-color($yellow-2);
-
 }
 .peg.peg-3 {
   @include hole-color($yellow-3);
-
 }
 .peg.peg-4 {
   @include hole-color($yellow-4);
-
 }
 .peg.peg-5 {
   @include hole-color($yellow-5);
 }
 .peg.peg-6 {
   @include hole-color($yellow-6);
-
 }
 .peg.peg-7 {
   @include hole-color($yellow-7);
-
 }
 .peg.peg-8 {
   @include hole-color($yellow-8);
-
 }
 .peg.peg-9 {
   @include hole-color($yellow-9);
@@ -108,24 +119,14 @@ $hole-size: calc((100vmin - 24px) / 7);
 
 .peg.peg-selected {
   @include hole-color($cyan-5);
-  z-index: 20;
   animation: pop 200ms ease 100ms;
   animation-fill-mode: both;
 }
 
 .peg.peg-jumpable {
-  &::after {
-    content: "";
-    position: absolute;
-    width: 110%;
-    height: 110%;
-    top: 50%;
-    left: 50%;
-    background-color: transparent;
-    border: 2px dashed $cyan-10;
-    border-radius: 48%;
-    animation: rotate 8s linear infinite;
-    transform: translate(-50%, -50%) rotate(0);
-    z-index: -1;
-  }
+  animation: ripple 1.5s linear infinite;
+}
+
+.peg.peg-selected.peg.peg-jumpable {
+  animation: ripple 1.5s linear infinite, pop 200ms ease 100ms 1 both;
 }
