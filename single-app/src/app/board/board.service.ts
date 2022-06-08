@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, ReplaySubject } from 'rxjs';
 import { Board, BoardStatus, BOARD_LIST } from './board.type';
-import { Direction, Hole, HoleStatus, HoleType, Position } from '../type';
+import { Direction, Hole, HoleStatus, HoleType, Neighbor, Position } from '../type';
 
 @Injectable({
   providedIn: 'root',
@@ -87,36 +87,52 @@ export class BoardService {
     this.boardStatusSubject.next(boardStatus);
   }
 
-  move(direction: Direction, selected: Position, reverse: boolean): boolean {
+  drag(direction: Direction, selected: Position, reverse: boolean): boolean {
     const neighbor = this.board.getNeighborPosition(selected, direction);
     if (neighbor) {
-      const start = this.getHole(selected);
-      const bypass = this.getHole(neighbor.bypass);
-      const target = this.getHole(neighbor.target);
-      if (reverse) {
-        if (
-          start.type > HoleType.empty &&
-          bypass.type >= HoleType.empty &&
-          target.type >= HoleType.empty
-        ) {
-          start.type = start.type - 1;
-          bypass.type = bypass.type + 1;
-          target.type = target.type + 1;
-          this.updateStatus(neighbor.target);
-          return true;
-        }
-      } else {
-        if (
-          start.type > HoleType.empty &&
-          bypass.type > HoleType.empty &&
-          target.type === HoleType.empty
-        ) {
-          start.type = start.type - 1;
-          bypass.type = bypass.type - 1;
-          target.type = target.type + 1;
-          this.updateStatus(neighbor.target);
-          return true;
-        }
+      return this.move(neighbor, selected, reverse);
+    }
+    return false;
+  }
+
+  click(position: Position, selectedPosition: Position, reverse: boolean): boolean {
+    const neighborPositions = this.board.getNeighborPositions(selectedPosition);
+    const neighbor = neighborPositions.find((neighbor) => {
+      return neighbor.target.col === position.col && neighbor.target.row === position.row
+    });
+    if (neighbor) {
+      return this.move(neighbor, selectedPosition, reverse);
+    }
+    return false;
+  }
+
+  private move(neighbor: Neighbor, selected: Position, reverse: boolean): boolean {
+    const start = this.getHole(selected);
+    const bypass = this.getHole(neighbor.bypass);
+    const target = this.getHole(neighbor.target);
+    if (reverse) {
+      if (
+        start.type > HoleType.empty &&
+        bypass.type >= HoleType.empty &&
+        target.type >= HoleType.empty
+      ) {
+        start.type = start.type - 1;
+        bypass.type = bypass.type + 1;
+        target.type = target.type + 1;
+        this.updateStatus(neighbor.target);
+        return true;
+      }
+    } else {
+      if (
+        start.type > HoleType.empty &&
+        bypass.type > HoleType.empty &&
+        target.type === HoleType.empty
+      ) {
+        start.type = start.type - 1;
+        bypass.type = bypass.type - 1;
+        target.type = target.type + 1;
+        this.updateStatus(neighbor.target);
+        return true;
       }
     }
     return false;

@@ -8,7 +8,7 @@
         <app-hole
           [hole]="boardStatus.holeStatus[i][j]"
           (mousedown)="startMove($event, i, j)"
-          (mouseup)="endMove($event)"
+          (mouseup)="endMove($event, i, j)"
           (touchstart)="startMove($event, i, j)"
           (touchend)="endMove($event, i, j)"
         ></app-hole>

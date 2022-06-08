@@ -117,7 +117,7 @@ $color: $gray-4;
   @include hole-color($yellow-9);
 }
 
-.peg.peg-selected {
+.peg:active,.peg:hover,.peg:focus {
   @include hole-color($cyan-5);
   animation: pop 200ms ease 100ms;
   animation-fill-mode: both;
@@ -127,6 +127,6 @@ $color: $gray-4;
   animation: ripple 1.5s linear infinite;
 }
 
-.peg.peg-selected.peg.peg-jumpable {
+.peg.peg-jumpable:active, .peg.peg-jumpable:hover {
   animation: ripple 1.5s linear infinite, pop 200ms ease 100ms 1 both;
 }

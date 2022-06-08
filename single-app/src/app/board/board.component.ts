@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { BoardStatus } from './board.type';
 import { BoardType, Direction, Position } from '../type';
 import { isTouchEvent, getEventPosition, silentEvent } from '../util/dom';
@@ -19,7 +19,7 @@ export class BoardComponent {
   boardStatus!: BoardStatus;
   boardType: BoardType = BoardType.rectangular;
 
-  constructor(private boardService: BoardService) {}
+  constructor(private boardService: BoardService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.boardService.boardStatus$.subscribe((status) => {
@@ -36,6 +36,7 @@ export class BoardComponent {
       };
       if (!this.boardStatus.board?.isOutrange(position)) {
         this.selectedPosition = position;
+        // this.boardService.updateStatus(position);
       }
     }
     if (this.boardStatus.board?.isOutrange(this.selectedPosition)) {
@@ -50,19 +51,28 @@ export class BoardComponent {
     const touchPosition = getEventPosition(event);
     this.touchStartClientX = touchPosition.clientX;
     this.touchStartClientY = touchPosition.clientY;
-    silentEvent(event);
+    // silentEvent(event);
   }
 
   endMove(event: TouchEvent | MouseEvent, row?: number, col?: number) {
-    if (this.selectedPosition.col < 0 && this.selectedPosition.row < 0) {
-      return;
+    console.log(row + ' ' + col);
+    const direction = this.getDirection(event);
+    if (direction) {
+      this.boardService.drag(direction, this.selectedPosition, false);
+    } else {
+      // this.boardService.updateStatus(this.selectedPosition);
     }
+    // silentEvent(event);
+  }
+
+  private getDirection(event: TouchEvent|MouseEvent): Direction|undefined {
+    let direction;
     const isTouch = isTouchEvent(event);
     if (
       isTouch &&
       (event.touches.length > 0 || event.targetTouches.length > 0)
     ) {
-      return; // Ignore if still touching with one or more fingers
+      return direction; // Ignore if still touching with one or more fingers
     }
     const touchEndClientX = isTouch
       ? event.changedTouches[0].clientX
@@ -76,23 +86,18 @@ export class BoardComponent {
 
     const dy = touchEndClientY - this.touchStartClientY;
     const absDy = Math.abs(dy);
-    let direction;
-    if (
-      this.boardType === BoardType.rectangular &&
-      Math.max(absDx, absDy) > 10
-    ) {
+    if (this.boardType === BoardType.rectangular &&
+      Math.max(absDx, absDy) > 10) {
       direction =
         absDx > absDy
           ? dx > 0
             ? Direction.right
             : Direction.left
           : dy > 0
-          ? Direction.down
-          : Direction.up;
-    } else if (
-      this.boardType === BoardType.diagonalRectangular &&
-      Math.max(absDx, absDy) > 10
-    ) {
+            ? Direction.down
+            : Direction.up;
+    } else if (this.boardType === BoardType.diagonalRectangular &&
+      Math.max(absDx, absDy) > 10) {
       const radio = absDx / absDy;
       if (radio > 2 || radio < 0.5) {
         direction =
@@ -101,8 +106,8 @@ export class BoardComponent {
               ? Direction.right
               : Direction.left
             : dy > 0
-            ? Direction.down
-            : Direction.up;
+              ? Direction.down
+              : Direction.up;
       } else {
         direction =
           dx > 0
@@ -110,13 +115,11 @@ export class BoardComponent {
               ? Direction.downRight
               : Direction.upRight
             : dy > 0
-            ? Direction.downLeft
-            : Direction.upLeft;
+              ? Direction.downLeft
+              : Direction.upLeft;
       }
-    } else if (
-      this.boardType === BoardType.triangular &&
-      Math.max(absDx, absDy) > 10
-    ) {
+    } else if (this.boardType === BoardType.triangular &&
+      Math.max(absDx, absDy) > 10) {
       const radio = absDx / absDy;
       if (radio > 2) {
         direction = dx > 0 ? Direction.right : Direction.left;
@@ -127,16 +130,27 @@ export class BoardComponent {
               ? Direction.downRight
               : Direction.upRight
             : dy > 0
-            ? Direction.downLeft
-            : Direction.upLeft;
+              ? Direction.downLeft
+              : Direction.upLeft;
       }
     }
+    return direction;
+  }
 
-    if (direction) {
-      this.boardService.move(direction, this.selectedPosition, false);
-    } else {
-      this.boardService.updateStatus(this.selectedPosition);
+  clickHole(row: number, col: number) {
+    if (row !== undefined && col !== undefined) {
+      const position = {
+        col,
+        row,
+      };
+      if (this.selectedPosition.col < 0 && this.selectedPosition.row < 0) {
+        this.selectedPosition = position;
+      } 
+      if (this.selectedPosition.col !== position.col || this.selectedPosition.row !== position.row) {
+        this.boardService.click(position, this.selectedPosition, false);
+      } else {
+        this.boardService.updateStatus(position);
+      }
     }
-    silentEvent(event);
   }
 }
