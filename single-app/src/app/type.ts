@@ -37,9 +37,27 @@ export enum HoleStatus {
   'selectedJumpable' = 5, // selected & jumpable peg
 }
 
-export interface Position {
+export class Position {
+  private readonly invalidIndex = -1;
   col: number;
   row: number;
+
+  constructor(col?: number, row?: number) {
+    this.col = col ?? this.invalidIndex;
+    this.row = row ?? this.invalidIndex;
+  }
+  isSame(position: Position): boolean {
+    return this.col === position.col && this.row === position.row;
+  }
+
+  validate(): boolean {
+    return (
+      !!this.col &&
+      this.col > this.invalidIndex &&
+      !!this.row &&
+      this.row > this.invalidIndex
+    );
+  }
 }
 
 export interface Neighbor {

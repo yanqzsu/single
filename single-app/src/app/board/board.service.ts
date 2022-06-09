@@ -1,13 +1,20 @@
 import { Injectable } from '@angular/core';
 import { Observable, ReplaySubject } from 'rxjs';
 import { Board, BoardStatus, BOARD_LIST } from './board.type';
-import { Direction, Hole, HoleStatus, HoleType, Neighbor, Position } from '../type';
+import {
+  Direction,
+  Hole,
+  HoleStatus,
+  HoleType,
+  Neighbor,
+  Position,
+} from '../type';
 
 @Injectable({
   providedIn: 'root',
 })
 export class BoardService {
-  private board!: Board;
+  private _board!: Board;
   private holesStatus!: Hole[][];
   private boardStatusSubject = new ReplaySubject<BoardStatus>(1);
   boardStatus$: Observable<BoardStatus>;
@@ -15,24 +22,26 @@ export class BoardService {
   constructor() {
     this.boardStatus$ = this.boardStatusSubject.asObservable();
     // random board for test
-    this.setBoard(
-      BOARD_LIST[
-        BOARD_LIST.list[Math.floor(Math.random() * BOARD_LIST.list.length)]
-      ] as Board
-    );
+    this.board = BOARD_LIST[
+      BOARD_LIST.list[Math.floor(Math.random() * BOARD_LIST.list.length)]
+    ] as Board;
   }
 
-  setBoard(board: Board): void {
-    this.board = board;
+  set board(board: Board) {
+    this._board = board;
     this.initBoardStatus();
     this.updateStatus();
+  }
+
+  get board(): Board {
+    return this._board;
   }
 
   updateStatus(selected?: Position): void {
     let jumpablePegCount = 0;
     for (let row = 0; row < this.holesStatus.length; row++) {
       for (let col = 0; col < this.holesStatus[row].length; col++) {
-        const position = { col, row };
+        const position = new Position(col, row);
         const hole = this.getHole(position);
         const neighborPositions = this.board.getNeighborPositions(position);
         const jumpable = neighborPositions.some(
@@ -87,26 +96,34 @@ export class BoardService {
     this.boardStatusSubject.next(boardStatus);
   }
 
-  drag(direction: Direction, selected: Position, reverse: boolean): boolean {
+  drag(direction: Direction, selected: Position, reverse: boolean): Position {
     const neighbor = this.board.getNeighborPosition(selected, direction);
     if (neighbor) {
       return this.move(neighbor, selected, reverse);
     }
-    return false;
+    return selected;
   }
 
-  click(position: Position, selectedPosition: Position, reverse: boolean): boolean {
+  click(
+    position: Position,
+    selectedPosition: Position,
+    reverse: boolean
+  ): Position {
     const neighborPositions = this.board.getNeighborPositions(selectedPosition);
-    const neighbor = neighborPositions.find((neighbor) => {
-      return neighbor.target.col === position.col && neighbor.target.row === position.row
-    });
+    const neighbor = neighborPositions.find((neighbor) =>
+      neighbor.target.isSame(position)
+    );
     if (neighbor) {
       return this.move(neighbor, selectedPosition, reverse);
     }
-    return false;
+    return selectedPosition;
   }
 
-  private move(neighbor: Neighbor, selected: Position, reverse: boolean): boolean {
+  private move(
+    neighbor: Neighbor,
+    selected: Position,
+    reverse: boolean
+  ): Position {
     const start = this.getHole(selected);
     const bypass = this.getHole(neighbor.bypass);
     const target = this.getHole(neighbor.target);
@@ -119,8 +136,7 @@ export class BoardService {
         start.type = start.type - 1;
         bypass.type = bypass.type + 1;
         target.type = target.type + 1;
-        this.updateStatus(neighbor.target);
-        return true;
+        return neighbor.target;
       }
     } else {
       if (
@@ -131,14 +147,18 @@ export class BoardService {
         start.type = start.type - 1;
         bypass.type = bypass.type - 1;
         target.type = target.type + 1;
-        this.updateStatus(neighbor.target);
-        return true;
+        return neighbor.target;
       }
     }
-    return false;
+    return selected;
   }
 
-  private getHole(position: Position): Hole {
+  public hasPeg(position: Position): boolean {
+    const hole = this.getHole(position);
+    return hole.type > HoleType.empty;
+  }
+
+  public getHole(position: Position): Hole {
     return this.holesStatus[position.row][position.col];
   }
 

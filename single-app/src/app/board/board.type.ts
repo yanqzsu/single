@@ -60,126 +60,126 @@ export class Board {
     const { col, row } = position;
     if (this.boardType === BoardType.rectangular) {
       neighbors.push({
-        bypass: { col: col, row: row - 1 },
-        target: { col: col, row: row - 2 },
+        bypass: new Position(col, row - 1),
+        target: new Position(col, row - 2),
         direction: Direction.up,
       });
       neighbors.push({
-        bypass: { col: col, row: row + 1 },
-        target: { col: col, row: row + 2 },
+        bypass: new Position(col, row + 1),
+        target: new Position(col, row + 2),
         direction: Direction.down,
       });
       neighbors.push({
-        bypass: { col: col - 1, row },
-        target: { col: col - 2, row },
+        bypass: new Position(col - 1, row),
+        target: new Position(col - 2, row),
         direction: Direction.left,
       });
       neighbors.push({
-        bypass: { col: col + 1, row },
-        target: { col: col + 2, row },
+        bypass: new Position(col + 1, row),
+        target: new Position(col + 2, row),
         direction: Direction.right,
       });
     } else if (this.boardType === BoardType.diagonalRectangular) {
       neighbors.push({
-        bypass: { col: col, row: row - 1 },
-        target: { col: col, row: row - 2 },
+        bypass: new Position(col, row - 1),
+        target: new Position(col, row - 2),
         direction: Direction.up,
       });
       neighbors.push({
-        bypass: { col: col, row: row + 1 },
-        target: { col: col, row: row + 2 },
+        bypass: new Position(col, row + 1),
+        target: new Position(col, row + 2),
         direction: Direction.down,
       });
       neighbors.push({
-        bypass: { col: col - 1, row },
-        target: { col: col - 2, row },
+        bypass: new Position(col - 1, row),
+        target: new Position(col - 2, row),
         direction: Direction.left,
       });
       neighbors.push({
-        bypass: { col: col + 1, row },
-        target: { col: col + 2, row },
+        bypass: new Position(col + 1, row),
+        target: new Position(col + 2, row),
         direction: Direction.right,
       });
       neighbors.push({
-        bypass: { col: col - 1, row: row - 1 },
-        target: { col: col - 2, row: row - 2 },
+        bypass: new Position(col - 1, row - 1),
+        target: new Position(col - 2, row - 2),
         direction: Direction.upLeft,
       });
       neighbors.push({
-        bypass: { col: col + 1, row: row - 1 },
-        target: { col: col + 2, row: row - 2 },
+        bypass: new Position(col + 1, row - 1),
+        target: new Position(col + 2, row - 2),
         direction: Direction.upRight,
       });
       neighbors.push({
-        bypass: { col: col - 1, row: row + 1 },
-        target: { col: col - 2, row: row + 2 },
+        bypass: new Position(col - 1, row + 1),
+        target: new Position(col - 2, row + 2),
         direction: Direction.downLeft,
       });
       neighbors.push({
-        bypass: { col: col + 1, row: row + 1 },
-        target: { col: col + 2, row: row + 2 },
+        bypass: new Position(col + 1, row + 1),
+        target: new Position(col + 2, row + 2),
         direction: Direction.downRight,
       });
     } else if (this.boardType === BoardType.triangular) {
       const hasHalf = this.map[position.row][0] === HoleType.half;
       neighbors.push({
-        bypass: { col: col - 1, row },
-        target: { col: col - 2, row },
+        bypass: new Position(col - 1, row),
+        target: new Position(col - 2, row),
         direction: Direction.left,
       });
       neighbors.push({
-        bypass: { col: col + 1, row },
-        target: { col: col + 2, row },
+        bypass: new Position(col + 1, row),
+        target: new Position(col + 2, row),
         direction: Direction.right,
       });
       if (hasHalf) {
         // left-top
         neighbors.push({
-          bypass: { col: col - 1, row: row - 1 },
-          target: { col: col - 1, row: row - 2 },
+          bypass: new Position(col - 1, row - 1),
+          target: new Position(col - 1, row - 2),
           direction: Direction.upLeft,
         });
         // right-top
         neighbors.push({
-          bypass: { col: col, row: row - 1 },
-          target: { col: col + 1, row: row - 2 },
+          bypass: new Position(col, row - 1),
+          target: new Position(col + 1, row - 2),
           direction: Direction.upRight,
         });
         // left-bottom
         neighbors.push({
-          bypass: { col: col - 1, row: row + 1 },
-          target: { col: col - 1, row: row + 2 },
+          bypass: new Position(col - 1, row + 1),
+          target: new Position(col - 1, row + 2),
           direction: Direction.downLeft,
         });
         // right-bottom
         neighbors.push({
-          bypass: { col: col, row: row + 1 },
-          target: { col: col + 1, row: row + 2 },
+          bypass: new Position(col, row + 1),
+          target: new Position(col + 1, row + 2),
           direction: Direction.downRight,
         });
       } else {
         // left-top
         neighbors.push({
-          bypass: { col: col, row: row - 1 },
-          target: { col: col - 1, row: row - 2 },
+          bypass: new Position(col, row - 1),
+          target: new Position(col - 1, row - 2),
           direction: Direction.upLeft,
         });
         // right-top
         neighbors.push({
-          bypass: { col: col + 1, row: row - 1 },
-          target: { col: col + 1, row: row - 2 },
+          bypass: new Position(col + 1, row - 1),
+          target: new Position(col + 1, row - 2),
           direction: Direction.upRight,
         });
         // left-bottom
         neighbors.push({
-          bypass: { col: col, row: row + 1 },
-          target: { col: col - 1, row: row + 2 },
+          bypass: new Position(col, row + 1),
+          target: new Position(col - 1, row + 2),
           direction: Direction.downLeft,
         });
         // right-bottom
         neighbors.push({
-          bypass: { col: col + 1, row: row + 1 },
-          target: { col: col + 1, row: row + 2 },
+          bypass: new Position(col + 1, row + 1),
+          target: new Position(col + 1, row + 2),
           direction: Direction.downRight,
         });
       }

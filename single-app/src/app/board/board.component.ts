@@ -12,14 +12,12 @@ import { BoardService } from './board.service';
 export class BoardComponent {
   touchStartClientX: number = 0;
   touchStartClientY: number = 0;
-  selectedPosition: Position = {
-    col: -1,
-    row: -1,
-  };
+  selectedPosition: Position = new Position();
+
   boardStatus!: BoardStatus;
   boardType: BoardType = BoardType.rectangular;
 
-  constructor(private boardService: BoardService, private cdr: ChangeDetectorRef) {}
+  constructor(private boardService: BoardService) {}
 
   ngOnInit(): void {
     this.boardService.boardStatus$.subscribe((status) => {
@@ -29,43 +27,56 @@ export class BoardComponent {
   }
 
   startMove(event: TouchEvent | MouseEvent, row?: number, col?: number) {
-    if (row !== undefined && col !== undefined) {
-      const position = {
-        col,
-        row,
-      };
-      if (!this.boardStatus.board?.isOutrange(position)) {
-        this.selectedPosition = position;
-        // this.boardService.updateStatus(position);
-      }
-    }
-    if (this.boardStatus.board?.isOutrange(this.selectedPosition)) {
-      return;
-    }
     if (
       isTouchEvent(event) &&
       (event.touches.length > 1 || event.targetTouches.length > 1)
     ) {
       return; // Ignore if still touching with one or more fingers
     }
+    const position = new Position(col, row);
+    if (this.boardService.hasPeg(position)) {
+      this.selectedPosition = position;
+      this.boardService.updateStatus(position);
+    }
     const touchPosition = getEventPosition(event);
     this.touchStartClientX = touchPosition.clientX;
     this.touchStartClientY = touchPosition.clientY;
-    // silentEvent(event);
+    silentEvent(event);
   }
 
-  endMove(event: TouchEvent | MouseEvent, row?: number, col?: number) {
-    console.log(row + ' ' + col);
+  endMove(event: TouchEvent | MouseEvent, row?: number, col?: number): void {
     const direction = this.getDirection(event);
+    let newSelectedPosition = this.selectedPosition;
     if (direction) {
-      this.boardService.drag(direction, this.selectedPosition, false);
-    } else {
-      // this.boardService.updateStatus(this.selectedPosition);
+      // by drag and drop
+      newSelectedPosition = this.boardService.drag(
+        direction,
+        this.selectedPosition,
+        false
+      );
+    } else if (row !== undefined && col !== undefined) {
+      // by click
+      const position = new Position(col, row);
+      if (
+        this.boardService.hasPeg(this.selectedPosition) &&
+        !this.boardService.board.isOutrange(position) &&
+        !this.selectedPosition.isSame(position)
+      ) {
+        newSelectedPosition = this.boardService.click(
+          position,
+          this.selectedPosition,
+          false
+        );
+      }
     }
-    // silentEvent(event);
+    if (!newSelectedPosition.isSame(this.selectedPosition)) {
+      this.selectedPosition = newSelectedPosition;
+      this.boardService.updateStatus(newSelectedPosition);
+    }
+    silentEvent(event);
   }
 
-  private getDirection(event: TouchEvent|MouseEvent): Direction|undefined {
+  private getDirection(event: TouchEvent | MouseEvent): Direction | undefined {
     let direction;
     const isTouch = isTouchEvent(event);
     if (
@@ -86,18 +97,22 @@ export class BoardComponent {
 
     const dy = touchEndClientY - this.touchStartClientY;
     const absDy = Math.abs(dy);
-    if (this.boardType === BoardType.rectangular &&
-      Math.max(absDx, absDy) > 10) {
+    if (
+      this.boardType === BoardType.rectangular &&
+      Math.max(absDx, absDy) > 10
+    ) {
       direction =
         absDx > absDy
           ? dx > 0
             ? Direction.right
             : Direction.left
           : dy > 0
-            ? Direction.down
-            : Direction.up;
-    } else if (this.boardType === BoardType.diagonalRectangular &&
-      Math.max(absDx, absDy) > 10) {
+          ? Direction.down
+          : Direction.up;
+    } else if (
+      this.boardType === BoardType.diagonalRectangular &&
+      Math.max(absDx, absDy) > 10
+    ) {
       const radio = absDx / absDy;
       if (radio > 2 || radio < 0.5) {
         direction =
@@ -106,8 +121,8 @@ export class BoardComponent {
               ? Direction.right
               : Direction.left
             : dy > 0
-              ? Direction.down
-              : Direction.up;
+            ? Direction.down
+            : Direction.up;
       } else {
         direction =
           dx > 0
@@ -115,11 +130,13 @@ export class BoardComponent {
               ? Direction.downRight
               : Direction.upRight
             : dy > 0
-              ? Direction.downLeft
-              : Direction.upLeft;
+            ? Direction.downLeft
+            : Direction.upLeft;
       }
-    } else if (this.boardType === BoardType.triangular &&
-      Math.max(absDx, absDy) > 10) {
+    } else if (
+      this.boardType === BoardType.triangular &&
+      Math.max(absDx, absDy) > 10
+    ) {
       const radio = absDx / absDy;
       if (radio > 2) {
         direction = dx > 0 ? Direction.right : Direction.left;
@@ -130,27 +147,10 @@ export class BoardComponent {
               ? Direction.downRight
               : Direction.upRight
             : dy > 0
-              ? Direction.downLeft
-              : Direction.upLeft;
+            ? Direction.downLeft
+            : Direction.upLeft;
       }
     }
     return direction;
-  }
-
-  clickHole(row: number, col: number) {
-    if (row !== undefined && col !== undefined) {
-      const position = {
-        col,
-        row,
-      };
-      if (this.selectedPosition.col < 0 && this.selectedPosition.row < 0) {
-        this.selectedPosition = position;
-      } 
-      if (this.selectedPosition.col !== position.col || this.selectedPosition.row !== position.row) {
-        this.boardService.click(position, this.selectedPosition, false);
-      } else {
-        this.boardService.updateStatus(position);
-      }
-    }
   }
 }
