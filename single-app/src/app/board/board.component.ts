@@ -36,7 +36,7 @@ export class BoardComponent {
     const position = new Position(col, row);
     if (this.boardService.hasPeg(position)) {
       this.selectedPosition = position;
-      this.boardService.updateStatus(position);
+      // this.boardService.updateStatus(position);
     }
     const touchPosition = getEventPosition(event);
     this.touchStartClientX = touchPosition.clientX;
@@ -71,8 +71,9 @@ export class BoardComponent {
     }
     if (!newSelectedPosition.isSame(this.selectedPosition)) {
       this.selectedPosition = newSelectedPosition;
-      this.boardService.updateStatus(newSelectedPosition);
     }
+    this.boardService.updateStatus(newSelectedPosition);
+
     silentEvent(event);
   }
 
