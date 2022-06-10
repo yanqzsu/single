@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, HostBinding, Input } from '@angular/core';
 import { HoleType, HoleStatus, Hole } from '../type';
 
 @Component({
@@ -16,12 +16,13 @@ export class HoleComponent {
   spotClass: any;
   pegClass: any;
 
+  @HostBinding('class.half')
+  isHalf: boolean = true;
+
   @Input()
   set hole(hole: Hole) {
     this._hole = hole;
-    this.holeClass = {
-      'hole-half': hole.type === HoleType.half,
-    };
+    this.isHalf = hole.type === HoleType.half;
     this.spotClass = {
       'spot-target': hole.status === HoleStatus.target,
     };

@@ -1,28 +1,27 @@
 @import "../variables.scss";
 
-:host {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  display: block;
-}
-
 .container {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  max-width: $max-board-width;
+  margin: 0 auto;
+  height: 100%;
+  overflow: auto;
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: stretch;
 }
 
 .heading {
+  flex: 1 0 150px;
   display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
+  flex-flow: row nowrap;
+  padding-bottom: 8px;
+  align-items: flex-end;
+  justify-content: space-between;
   .title-container {
     flex: 1;
     .title {
-      font-size: 12vw;
-      line-height: 12vw;
+      font-size: min(60px, 14vmin);
+      line-height: 1;
       padding: 8px;
       margin: 0;
     }
@@ -31,10 +30,10 @@
     }
   }
   .scores-container {
-    width: 140px;
+    flex: 0 0 140px;
     display: flex;
-    flex-direction: column;
-
+    flex-flow: column nowrap;
+    justify-content: flex-end;
     .card {
       flex: 1;
       all: unset;
@@ -49,12 +48,11 @@
       justify-content: center;
       align-items: center;
       transition: all 0.2s ease-in-out;
-      font-size: 30px;
+      font-size: min(30px, 10vmin);;
       font-weight: 700;
       line-height: 24px;
       &-label {
         display: inline-block;
-        // width: 50px;
       }
       &-value {
         display: inline;
@@ -69,21 +67,33 @@
   }
 }
 
+.board {
+  flex: 0;
+}
+
+
 .operation {
+  flex: 0 0 60px;
   display: flex;
-  flex-direction: row;
-  justify-content: center;
+  flex-flow: row nowrap;
+  justify-content: space-evenly;
   align-items: center;
-  height: 100px;
-  font-size: 4.5vw;
-  font-weight: 600;
-  overflow: hidden;
   button {
+    // min-width: 80px;
     margin-left: 8px;
+    font-size: 20px;
+    height: 32px;
+    font-weight: 600;
+    line-height: 1;
     display: inline-block;
     &:last-child {
       margin-right: 8px;
     }
     flex: 1;
   }
+}
+
+.game-intro{
+  margin: 0;
+  flex: 2 0 auto;
 }

@@ -2,8 +2,7 @@
 
 $border-width: 4px;
 $border-style: solid $border-width black;
-$hole-size: calc((100vmin - 24px) / 7);
-$color: $gray-4;
+$ripple-color: $gray-4;
 
 @keyframes pop {
   0% {
@@ -28,14 +27,16 @@ $color: $gray-4;
 
 @keyframes ripple {
   0% {
-    box-shadow: 0 0 0 0 rgba($color, 0.3), 0 0 0 1px rgba($color, 0.3),
-      0 0 0 1px rgba($color, 0.3), 0 0 0 3px rgba($color, 0.3);
+    box-shadow: 0 0 0 0 rgba($ripple-color, 0.3), 0 0 0 1px rgba($ripple-color, 0.3),
+      0 0 0 1px rgba($ripple-color, 0.3), 0 0 0 3px rgba($ripple-color, 0.3);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba($color, 0.3), 0 0 0 1px rgba($color, 0.3),
-      0 0 0 5px rgba($color, 0), 0 0 0 10px rgba($color, 0);
+    box-shadow: 0 0 0 0 rgba($ripple-color, 0.3), 0 0 0 1px rgba($ripple-color, 0.3),
+      0 0 0 5px rgba($ripple-color, 0), 0 0 0 10px rgba($ripple-color, 0);
   }
 }
+
+
 
 @mixin hole-color($hole-color) {
   background-image: linear-gradient(
@@ -49,13 +50,9 @@ $color: $gray-4;
 }
 
 .hole {
-  width: $hole-size;
+  width: 100%;
   display: inline-block;
-  height: $hole-size;
-  &.hole-half {
-    width: calc($hole-size/2);
-    height: calc($hole-size/2);
-  }
+  height: 100%;
   position: relative;
   display: flex;
   justify-content: center;
@@ -71,7 +68,7 @@ $color: $gray-4;
   height: 20%;
   background-color: $cyan-9;
   border-radius: 50%;
-  z-index: -1;
+  z-index: 1;
   &.spot-target {
     background-color: $red-5;
     transition: all 0.5s ease;
@@ -79,13 +76,13 @@ $color: $gray-4;
 }
 
 .peg {
-  position: relative;
   display: block;
   width: 70%;
   height: 70%;
-  line-height: 70%;
+  line-height: 1;
   text-align: center;
   border-radius: 50%;
+  z-index: 2;
   @include hole-color($gray-1);
 }
 
