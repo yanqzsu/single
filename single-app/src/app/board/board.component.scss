@@ -1,7 +1,7 @@
 @import "../../variables.scss";
 
 @media screen and (orientation: portrait) {
-  $size: calc(min(100vmin, 600px) - 24px);
+  $size: calc(min(100vmin, $max-board-width) - 40px);
   .game-container {
     width: $size;
     height: $size;
@@ -16,7 +16,7 @@
   }
 }
 @media screen and (orientation: landscape) {
-  $size: calc(min(100vmin, 600px) - 200px);
+  $size: calc(min(100vmin, $max-board-width) - 100px);
   .game-container {
     width: $size;
     height: $size;
