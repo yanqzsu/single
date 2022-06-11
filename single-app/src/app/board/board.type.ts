@@ -4,6 +4,7 @@ import {
   Hole,
   HoleType,
   Neighbor,
+  Operation,
   Position,
 } from '../type';
 
@@ -11,23 +12,24 @@ export interface BoardStatus {
   board: Board;
   holeStatus: Hole[][];
   jumpablePegCount: number;
+  remainingPegCount: number;
+  lastPegPosition?: Position;
+  operationStack: Operation[];
+  selectedPosition?: Position;
 }
 
 export class Board {
   map: HoleType[][];
   boardType: BoardType;
-  startPosition: Position | undefined;
-  endPosition: Position | undefined;
+  startPosition: Position;
   constructor(
     map: HoleType[][],
     boardType: BoardType,
-    startPosition?: Position,
-    endPosition?: Position
+    startPosition: Position
   ) {
     this.map = map;
     this.boardType = boardType;
     this.startPosition = startPosition;
-    this.endPosition = endPosition;
   }
 
   getHoleType(position: Position): HoleType {
@@ -43,7 +45,7 @@ export class Board {
     if (position.col < 0 || position.col > columnMax) {
       return true;
     }
-    return this.getHoleType(position) < 0;
+    return false;
   }
 
   getNeighborPosition(
@@ -189,6 +191,67 @@ export class Board {
         !this.isOutrange(value.bypass) && !this.isOutrange(value.target)
     );
   }
+
+  getDirection(dx: number, dy: number): Direction | undefined {
+    let direction;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+    if (
+      this.boardType === BoardType.rectangular &&
+      Math.max(absDx, absDy) > 10
+    ) {
+      direction =
+        absDx > absDy
+          ? dx > 0
+            ? Direction.right
+            : Direction.left
+          : dy > 0
+          ? Direction.down
+          : Direction.up;
+    } else if (
+      this.boardType === BoardType.diagonalRectangular &&
+      Math.max(absDx, absDy) > 10
+    ) {
+      const radio = absDx / absDy;
+      if (radio > 2 || radio < 0.5) {
+        direction =
+          absDx > absDy
+            ? dx > 0
+              ? Direction.right
+              : Direction.left
+            : dy > 0
+            ? Direction.down
+            : Direction.up;
+      } else {
+        direction =
+          dx > 0
+            ? dy > 0
+              ? Direction.downRight
+              : Direction.upRight
+            : dy > 0
+            ? Direction.downLeft
+            : Direction.upLeft;
+      }
+    } else if (
+      this.boardType === BoardType.triangular &&
+      Math.max(absDx, absDy) > 10
+    ) {
+      const radio = absDx / absDy;
+      if (radio > 2) {
+        direction = dx > 0 ? Direction.right : Direction.left;
+      } else {
+        direction =
+          dx > 0
+            ? dy > 0
+              ? Direction.downRight
+              : Direction.upRight
+            : dy > 0
+            ? Direction.downLeft
+            : Direction.upLeft;
+      }
+    }
+    return direction;
+  }
 }
 
 export const BOARD_LIST: {
@@ -213,7 +276,8 @@ export const BOARD_LIST: {
       [-1, -1, 1, 1, 1, -1, -1],
       [-1, -1, 1, 1, 1, -1, -1],
     ],
-    BoardType.rectangular
+    BoardType.rectangular,
+    new Position(3, 3)
   ),
 
   englishDiagonalBoard: new Board(
@@ -226,7 +290,8 @@ export const BOARD_LIST: {
       [-1, -1, 1, 1, 1, -1, -1],
       [-1, -1, 1, 1, 1, -1, -1],
     ],
-    BoardType.diagonalRectangular
+    BoardType.diagonalRectangular,
+    new Position(3, 3)
   ),
 
   englishDiagonalBoard2: new Board(
@@ -239,7 +304,8 @@ export const BOARD_LIST: {
       [-1, -1, 1, 8, 1, -1, -1],
       [-1, -1, 1, 1, 1, -1, -1],
     ],
-    BoardType.diagonalRectangular
+    BoardType.diagonalRectangular,
+    new Position(3, 3)
   ),
 
   triangleBoard: new Board(
@@ -250,7 +316,8 @@ export const BOARD_LIST: {
       [-0.5, 1, 1, 1, 1, -0.5],
       [1, 1, 1, 1, 1],
     ],
-    BoardType.triangular
+    BoardType.triangular,
+    new Position(2, 0)
   ),
 
   triangleBoard2: new Board(
@@ -261,7 +328,8 @@ export const BOARD_LIST: {
       [-0.5, -1, 1, 1, -1, -0.5],
       [-1, -1, 0, -1, -1],
     ],
-    BoardType.triangular
+    BoardType.triangular,
+    new Position(2, 4)
   ),
 
   triangleBoard3: new Board(
@@ -272,6 +340,7 @@ export const BOARD_LIST: {
       [-1, 1, 1, 1],
       [-0.5, -1, -1, 0, -0.5],
     ],
-    BoardType.triangular
+    BoardType.triangular,
+    new Position(3, 4)
   ),
 };

@@ -1,5 +1,5 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { Operation, Status } from './app.service';
+import { BoardService } from './board/board.service';
 
 @Component({
   selector: 'app-root',
@@ -7,23 +7,6 @@ import { Operation, Status } from './app.service';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit {
-  private readonly STEP_BONUS = 10;
-  private readonly COMBO_BONUS = 2;
-  private readonly MAX_COMBO_BONUS = 10;
-
-  scoreStatus: Status = {
-    remainingCount: 0,
-    mobileCellCount: 0,
-    currentCombo: 0,
-    maxCombo: 0,
-    comboCount: 0,
-    takenCount: 0,
-    score: 0,
-    steps: 0,
-  };
-
-  operationStack: Operation[] = [];
-
   templateRef: TemplateRef<any> | null = null;
 
   @ViewChild('gameOver')
@@ -32,11 +15,19 @@ export class AppComponent implements OnInit {
   @ViewChild('ranking')
   ranking!: TemplateRef<any>;
 
-  constructor() {}
+  constructor(private boardService: BoardService) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.boardService.boardStatus$.subscribe((status) => {
+      if (status.jumpablePegCount === 0) {
+        this.showGameOver();
+      }
+    });
+  }
 
-  undo(): void {}
+  undo(): void {
+    this.boardService.undo();
+  }
 
   showRanking(): void {
     this.templateRef = this.ranking;

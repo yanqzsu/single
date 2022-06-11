@@ -38,13 +38,13 @@ export enum HoleStatus {
 }
 
 export class Position {
-  private readonly invalidIndex = -1;
+  private static readonly invalidIndex = -1;
   col: number;
   row: number;
 
   constructor(col?: number, row?: number) {
-    this.col = col ?? this.invalidIndex;
-    this.row = row ?? this.invalidIndex;
+    this.col = col ?? Position.invalidIndex;
+    this.row = row ?? Position.invalidIndex;
   }
   isSame(position: Position): boolean {
     return this.col === position.col && this.row === position.row;
@@ -53,10 +53,16 @@ export class Position {
   validate(): boolean {
     return (
       !!this.col &&
-      this.col > this.invalidIndex &&
+      this.col > Position.invalidIndex &&
       !!this.row &&
-      this.row > this.invalidIndex
+      this.row > Position.invalidIndex
     );
+  }
+
+  getDistance(p: Position): number {
+    const dx = this.col - p.col;
+    const dy = this.row - p.row;
+    return Math.abs(dx) + Math.abs(dy);
   }
 }
 
@@ -70,4 +76,9 @@ export enum BoardType {
   rectangular = 1,
   diagonalRectangular = 2,
   triangular = 3,
+}
+
+export interface Operation {
+  target: Position;
+  source: Position;
 }

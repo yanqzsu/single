@@ -1,25 +1,6 @@
 <!-- <router-outlet></router-outlet> -->
 <div class="container">
-  <div class="heading">
-    <div class="title-container">
-      <h1 class="title">独行棋</h1>
-      <div class="slogan">不孤单</div>
-    </div>
-    <div class="scores-container">
-      <div class="card">
-        <label class="card-label">得分:</label>
-        <span class="card-value">{{ scoreStatus.score }}</span>
-      </div>
-      <div class="card">
-        <label class="card-label">剩余:</label>
-        <span class="card-value">{{ scoreStatus.remainingCount }}</span>
-      </div>
-      <div class="card">
-        <label class="card-label">步数:</label>
-        <span class="card-value">{{ scoreStatus.steps }}</span>
-      </div>
-    </div>
-  </div>
+  <app-header class="header"></app-header>
 
   <app-board class="board"></app-board>
 

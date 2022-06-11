@@ -7,6 +7,7 @@ import {
   HoleStatus,
   HoleType,
   Neighbor,
+  Operation,
   Position,
 } from '../type';
 
@@ -16,6 +17,8 @@ import {
 export class BoardService {
   private _board!: Board;
   private holesStatus!: Hole[][];
+  private operationStack: Operation[] = [];
+  private selectedPosition: Position = new Position();
   private boardStatusSubject = new ReplaySubject<BoardStatus>(1);
   boardStatus$: Observable<BoardStatus>;
 
@@ -39,15 +42,18 @@ export class BoardService {
 
   updateStatus(selected?: Position): void {
     let jumpablePegCount = 0;
+    let remainingPegCount = 0;
+    let lastPegPosition;
     for (let row = 0; row < this.holesStatus.length; row++) {
       for (let col = 0; col < this.holesStatus[row].length; col++) {
         const position = new Position(col, row);
-        const hole = this.getHole(position);
+        const hole = this.getHole(position)!;
+        remainingPegCount += hole.type > HoleType.empty ? hole.type : 0;
         const neighborPositions = this.board.getNeighborPositions(position);
         const jumpable = neighborPositions.some(
           (neighbor: { bypass: Position; target: Position }) => {
-            const bypassType = this.getHole(neighbor.bypass).type;
-            const targetType = this.getHole(neighbor.target).type;
+            const bypassType = this.getHole(neighbor.bypass)!.type;
+            const targetType = this.getHole(neighbor.target)!.type;
             if (
               hole.type > HoleType.empty &&
               bypassType > HoleType.empty &&
@@ -66,18 +72,20 @@ export class BoardService {
         }
       }
     }
-    if (selected) {
-      const hole = this.getHole(selected);
-      if (hole.type > HoleType.empty) {
-        hole.status =
-          hole.status === HoleStatus.jumpable
-            ? HoleStatus.selectedJumpable
-            : HoleStatus.selectedUnjumpable;
+    if (selected && this.hasPeg(selected)) {
+      const hole = this.getHole(selected)!;
+      hole.status =
+        hole.status === HoleStatus.jumpable
+          ? HoleStatus.selectedJumpable
+          : HoleStatus.selectedUnjumpable;
+      if (remainingPegCount === 1) {
+        lastPegPosition = new Position(selected.col, selected.row);
+      } else {
         const neighborPositions = this.board.getNeighborPositions(selected);
         neighborPositions.forEach(
           (neighbor: { bypass: Position; target: Position }) => {
-            const bypass = this.getHole(neighbor.bypass);
-            const target = this.getHole(neighbor.target);
+            const bypass = this.getHole(neighbor.bypass)!;
+            const target = this.getHole(neighbor.target)!;
             if (
               bypass.type > HoleType.empty &&
               target.type === HoleType.empty
@@ -89,44 +97,94 @@ export class BoardService {
       }
     }
     const boardStatus: BoardStatus = {
+      remainingPegCount,
       jumpablePegCount,
-      holeStatus: this.deepClone<Hole>(this.holesStatus),
+      lastPegPosition,
+      holeStatus: this.deepClone<Hole[][]>(this.holesStatus),
       board: this.board,
+      operationStack: this.operationStack,
     };
     this.boardStatusSubject.next(boardStatus);
   }
 
-  drag(direction: Direction, selected: Position, reverse: boolean): Position {
-    const neighbor = this.board.getNeighborPosition(selected, direction);
-    if (neighbor) {
-      return this.move(neighbor, selected, reverse);
+  drag(reverse: boolean, direction: Direction): boolean {
+    const endPosition = this.board.getNeighborPosition(
+      this.selectedPosition,
+      direction
+    );
+    if (endPosition) {
+      return this.move(endPosition, this.selectedPosition, reverse);
     }
-    return selected;
+    return false;
   }
 
   click(
-    position: Position,
-    selectedPosition: Position,
-    reverse: boolean
-  ): Position {
-    const neighborPositions = this.board.getNeighborPositions(selectedPosition);
-    const neighbor = neighborPositions.find((neighbor) =>
-      neighbor.target.isSame(position)
-    );
-    if (neighbor) {
-      return this.move(neighbor, selectedPosition, reverse);
+    reverse: boolean,
+    endPosition: Position,
+    startPosition?: Position
+  ): boolean {
+    const position = startPosition || this.selectedPosition;
+    if (position.isSame(endPosition)) {
+      this.updateStatus(endPosition);
+      return false;
     }
-    return selectedPosition;
+    if (this.hasPeg(position) && !this.board.isOutrange(endPosition)) {
+      const neighborPositions = this.board.getNeighborPositions(position);
+      const neighbor = neighborPositions.find((neighbor) =>
+        neighbor.target.isSame(endPosition)
+      );
+      if (neighbor) {
+        return this.move(neighbor, position, reverse);
+      }
+    }
+    return false;
+  }
+
+  undo(): void {
+    const operation = this.operationStack.pop();
+    if (operation) {
+      this.click(true, operation.source, operation.target);
+    }
+  }
+
+  hasPeg(position: Position): boolean {
+    const hole = this.getHole(position);
+    if (hole) {
+      return hole.type > HoleType.empty;
+    }
+    return false;
+  }
+
+  getHole(position: Position): Hole | undefined {
+    let result;
+    if (!this.board.isOutrange(position)) {
+      result = this.holesStatus[position.row][position.col];
+    }
+    return result;
+  }
+
+  setSelectedPosition(position: Position, refreshStatus?: boolean): void {
+    if (this.hasPeg(position)) {
+      this.selectedPosition = position;
+    }
+    if (refreshStatus) {
+      this.updateStatus(this.selectedPosition);
+    }
+  }
+
+  getDirection(dx: number, dy: number): Direction | undefined {
+    return this._board?.getDirection(dx, dy);
   }
 
   private move(
     neighbor: Neighbor,
     selected: Position,
     reverse: boolean
-  ): Position {
-    const start = this.getHole(selected);
-    const bypass = this.getHole(neighbor.bypass);
-    const target = this.getHole(neighbor.target);
+  ): boolean {
+    const start = this.getHole(selected)!;
+    const bypass = this.getHole(neighbor.bypass)!;
+    const target = this.getHole(neighbor.target)!;
+    let result = false;
     if (reverse) {
       if (
         start.type > HoleType.empty &&
@@ -136,7 +194,7 @@ export class BoardService {
         start.type = start.type - 1;
         bypass.type = bypass.type + 1;
         target.type = target.type + 1;
-        return neighbor.target;
+        result = true;
       }
     } else {
       if (
@@ -147,24 +205,23 @@ export class BoardService {
         start.type = start.type - 1;
         bypass.type = bypass.type - 1;
         target.type = target.type + 1;
-        return neighbor.target;
+        this.operationStack.push({
+          source: selected,
+          target: neighbor.target,
+        });
+        result = true;
       }
     }
-    return selected;
+    if (result) {
+      this.selectedPosition = neighbor.target;
+      this.updateStatus(this.selectedPosition);
+    }
+    return result;
   }
 
-  public hasPeg(position: Position): boolean {
-    const hole = this.getHole(position);
-    return hole.type > HoleType.empty;
-  }
-
-  public getHole(position: Position): Hole {
-    return this.holesStatus[position.row][position.col];
-  }
-
-  private deepClone<T>(obj: T[][]): T[][] {
-    return obj.map((row) => row.slice());
-    // return JSON.parse(JSON.stringify(obj));
+  private deepClone<T>(obj: T): T {
+    // return obj.map((row) => row.slice());
+    return JSON.parse(JSON.stringify(obj));
   }
 
   private initBoardStatus(): void {
@@ -177,5 +234,6 @@ export class BoardService {
       });
     });
     this.holesStatus = holesStatus;
+    this.operationStack = [];
   }
 }

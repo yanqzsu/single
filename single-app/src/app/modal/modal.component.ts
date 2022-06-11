@@ -2,7 +2,6 @@ import {
   Component,
   EventEmitter,
   Inject,
-  Injectable,
   Input,
   Output,
   TemplateRef,
