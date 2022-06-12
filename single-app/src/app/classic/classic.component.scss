@@ -1,0 +1,43 @@
+@import "../../variables.scss";
+
+.container {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+.header {
+  flex: 1 0 150px;
+}
+
+.board {
+  flex: 0;
+}
+
+
+.operation {
+  flex: 0 0 60px;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-evenly;
+  align-items: center;
+  button {
+    // min-width: 80px;
+    margin-left: 8px;
+    font-size: 20px;
+    height: 32px;
+    font-weight: 600;
+    line-height: 1;
+    display: inline-block;
+    &:last-child {
+      margin-right: 8px;
+    }
+    flex: 1;
+  }
+}
+
+.game-intro{
+  margin: 0;
+  flex: 2 0 auto;
+}
