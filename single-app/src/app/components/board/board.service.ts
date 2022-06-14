@@ -9,7 +9,7 @@ import {
   Neighbor,
   Operation,
   Position,
-} from '../type';
+} from '../../type';
 
 @Injectable({
   providedIn: 'root',

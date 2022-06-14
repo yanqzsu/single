@@ -1,4 +1,4 @@
-@import "../../variables.scss";
+@import "../../../variables.scss";
 
 $border-width: 4px;
 $border-style: solid $border-width black;
@@ -27,16 +27,16 @@ $ripple-color: $gray-4;
 
 @keyframes ripple {
   0% {
-    box-shadow: 0 0 0 0 rgba($ripple-color, 0.3), 0 0 0 1px rgba($ripple-color, 0.3),
-      0 0 0 1px rgba($ripple-color, 0.3), 0 0 0 3px rgba($ripple-color, 0.3);
+    box-shadow: 0 0 0 0 rgba($ripple-color, 0.3),
+      0 0 0 1px rgba($ripple-color, 0.3), 0 0 0 1px rgba($ripple-color, 0.3),
+      0 0 0 3px rgba($ripple-color, 0.3);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba($ripple-color, 0.3), 0 0 0 1px rgba($ripple-color, 0.3),
-      0 0 0 5px rgba($ripple-color, 0), 0 0 0 10px rgba($ripple-color, 0);
+    box-shadow: 0 0 0 0 rgba($ripple-color, 0.3),
+      0 0 0 1px rgba($ripple-color, 0.3), 0 0 0 5px rgba($ripple-color, 0),
+      0 0 0 10px rgba($ripple-color, 0);
   }
 }
-
-
 
 @mixin hole-color($hole-color) {
   background-image: linear-gradient(

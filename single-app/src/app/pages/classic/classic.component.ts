@@ -1,5 +1,5 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { BoardService } from '../board/board.service';
+import { BoardService } from '../../components/board/board.service';
 
 @Component({
   selector: 'app-classic',

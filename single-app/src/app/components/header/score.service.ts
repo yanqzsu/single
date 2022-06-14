@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable, of, switchMap } from 'rxjs';
 import { BoardService } from '../board/board.service';
 import { Board, BoardStatus, BOARD_LIST } from '../board/board.type';
-import { HoleType, Position } from '../type';
+import { HoleType, Position } from '../../type';
 
 export interface ScoreStatus {
   remainingPegCount: number;

@@ -1,4 +1,4 @@
-@import "../../variables.scss";
+@import "../../../variables.scss";
 
 @media screen and (orientation: portrait) {
   $size: calc(min(100vmin, $max-board-width) - 40px);

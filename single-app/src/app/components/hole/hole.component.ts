@@ -1,5 +1,5 @@
 import { Component, HostBinding, Input } from '@angular/core';
-import { HoleType, HoleStatus, Hole } from '../type';
+import { HoleType, HoleStatus, Hole } from '../../type';
 
 @Component({
   selector: 'app-hole',

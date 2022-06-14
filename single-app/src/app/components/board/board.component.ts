@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { BoardStatus } from './board.type';
-import { Direction, Position } from '../type';
-import { isTouchEvent, getEventPosition, silentEvent } from '../util/dom';
+import { Direction, Position } from '../../type';
+import { isTouchEvent, getEventPosition, silentEvent } from '../../util/dom';
 import { BoardService } from './board.service';
 
 @Component({

@@ -6,7 +6,7 @@ import {
   Neighbor,
   Operation,
   Position,
-} from '../type';
+} from '../../type';
 
 export interface BoardStatus {
   board: Board;

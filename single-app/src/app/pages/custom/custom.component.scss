@@ -1,4 +1,4 @@
-@import "../../variables.scss";
+@import "../../../variables.scss";
 
 .container {
   display: flex;
@@ -14,7 +14,6 @@
 .board {
   flex: 0;
 }
-
 
 .operation {
   flex: 0 0 60px;
@@ -37,7 +36,7 @@
   }
 }
 
-.game-intro{
+.game-intro {
   margin: 0;
   flex: 2 0 auto;
 }
