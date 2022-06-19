@@ -3,6 +3,7 @@ import { Observable, ReplaySubject } from 'rxjs';
 import { BOARD_LIST } from 'src/app/board-list';
 import { Board, BoardStatus } from '../../board.type';
 import {
+  BoardType,
   Direction,
   Hole,
   HoleStatus,
@@ -15,7 +16,9 @@ import {
 @Injectable({
   providedIn: 'root',
 })
-export class BoardService {
+export class AboardService {
+  private MAX_ROW = 7;
+  private MAX_COLUMN = 7;
   private _board!: Board;
   private holesStatus!: Hole[][];
   private operationStack: Operation[] = [];
@@ -26,13 +29,12 @@ export class BoardService {
   constructor() {
     this.boardStatus$ = this.boardStatusSubject.asObservable();
     // random board for test
-    this.board = BOARD_LIST[
-      BOARD_LIST.list[Math.floor(Math.random() * BOARD_LIST.list.length)]
-    ] as Board;
+    this.board = BOARD_LIST['triangleBoard'] as Board;
   }
 
   set board(board: Board) {
     this._board = board;
+    // this.expandBoard();
     this.initBoardStatus();
     this.updateStatus();
   }
@@ -162,6 +164,7 @@ export class BoardService {
       result = this.holesStatus[position.row][position.col];
     }
     return result;
+    // return this.holesStatus[position.row][position.col];
   }
 
   setSelectedPosition(position: Position, refreshStatus?: boolean): void {
@@ -236,5 +239,119 @@ export class BoardService {
     });
     this.holesStatus = holesStatus;
     this.operationStack = [];
+  }
+
+  private shrinkBoard(): void {}
+
+  private expandBoard(): void {
+    const edge = {
+      top: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
+      innerWidth: this.board.width,
+      innerHeight: this.board.height,
+    };
+    this.board.map.forEach((row, rowIndex) => {
+      row.forEach((cell, colIndex) => {
+        if (cell > HoleType.empty) {
+          const neighbors = this.board.getNeighborPositions(
+            new Position(colIndex, rowIndex),
+            true
+          );
+          neighbors.forEach((neighbor) => {
+            const position = neighbor.target;
+            if (position.col < edge.left) {
+              edge.left = position.col;
+            }
+            if (position.col > edge.right) {
+              edge.right = position.col;
+            }
+            if (position.row < edge.top) {
+              edge.top = position.row;
+            }
+            if (position.row > edge.bottom) {
+              edge.bottom = position.row;
+            }
+          });
+        }
+        if (cell === HoleType.none) {
+          this.board.map[rowIndex][colIndex] = HoleType.temp;
+        }
+      });
+    });
+    console.log(edge);
+    while (edge.top < 0) {
+      const firstRowLength = this.board.map[0].length;
+      if (this.board.boardType === BoardType.hexagon) {
+        if (firstRowLength !== edge.innerWidth) {
+          const newRow = [
+            HoleType.half,
+            ...Array(edge.innerWidth - 2).fill(HoleType.temp),
+            HoleType.half,
+          ];
+          this.board.map.unshift(newRow);
+        } else {
+          this.board.map.unshift(
+            Array(edge.innerWidth - 1).fill(HoleType.temp)
+          );
+        }
+      } else {
+        this.board.map.unshift(Array(firstRowLength).fill(HoleType.temp));
+      }
+      edge.top++;
+      this.board.updateSize();
+    }
+    while (edge.bottom - edge.innerHeight >= 0) {
+      const lastRowLength = this.board.map[this.board.height - 1].length;
+      if (this.board.boardType === BoardType.hexagon) {
+        if (lastRowLength !== edge.innerWidth) {
+          const newRow = [
+            HoleType.half,
+            ...Array(edge.innerWidth - 2).fill(HoleType.temp),
+            HoleType.half,
+          ];
+          this.board.map.push(newRow);
+        } else {
+          this.board.map.push(Array(edge.innerWidth - 1).fill(HoleType.temp));
+        }
+      } else {
+        this.board.map.push(Array(lastRowLength).fill(HoleType.temp));
+      }
+      edge.bottom--;
+      this.board.updateSize();
+    }
+    while (edge.left < 0) {
+      this.board.map.forEach((row) => {
+        if (this.board.boardType === BoardType.hexagon) {
+          const firstCell = row[0];
+          if (firstCell === HoleType.half) {
+            row[0] = HoleType.temp;
+            row.unshift(HoleType.half);
+          } else {
+            row.unshift(HoleType.temp);
+          }
+        } else {
+          row.unshift(HoleType.temp);
+        }
+      });
+      edge.left++;
+    }
+    while (edge.right - edge.innerWidth >= -1) {
+      this.board.map.forEach((row) => {
+        if (this.board.boardType === BoardType.hexagon) {
+          const lastCell = row[row.length - 1];
+          if (lastCell === HoleType.half) {
+            row[row.length - 1] = HoleType.temp;
+            row.push(HoleType.half);
+          } else {
+            row.push(HoleType.temp);
+          }
+        } else {
+          row.push(HoleType.temp);
+        }
+      });
+      edge.right--;
+    }
   }
 }

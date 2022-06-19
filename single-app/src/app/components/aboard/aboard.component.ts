@@ -1,20 +1,20 @@
-import { Component } from '@angular/core';
-import { BoardStatus } from '../../board.type';
+import { Component, OnInit } from '@angular/core';
 import { Direction, Position } from '../../type';
 import { isTouchEvent, getEventPosition, silentEvent } from '../../util/dom';
-import { BoardService } from './board.service';
+import { BoardStatus } from '../../board.type';
+import { AboardService } from './aboard.service';
 
 @Component({
-  selector: 'app-board',
-  templateUrl: './board.component.html',
-  styleUrls: ['./board.component.scss'],
+  selector: 'app-aboard',
+  templateUrl: './aboard.component.html',
+  styleUrls: ['./aboard.component.scss'],
 })
-export class BoardComponent {
+export class AboardComponent implements OnInit {
   touchStartClientX: number = 0;
   touchStartClientY: number = 0;
   boardStatus!: BoardStatus;
 
-  constructor(private boardService: BoardService) {}
+  constructor(private boardService: AboardService) {}
 
   ngOnInit(): void {
     this.boardService.boardStatus$.subscribe((status) => {

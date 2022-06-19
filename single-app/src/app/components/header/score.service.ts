@@ -2,8 +2,9 @@ import { ThisReceiver } from '@angular/compiler';
 import { Injectable } from '@angular/core';
 import { Observable, of, switchMap } from 'rxjs';
 import { BoardService } from '../board/board.service';
-import { Board, BoardStatus, BOARD_LIST } from '../board/board.type';
+import { Board, BoardStatus } from '../../board.type';
 import { HoleType, Position } from '../../type';
+import { BOARD_LIST } from 'src/app/board-list';
 
 export interface ScoreStatus {
   remainingPegCount: number;
@@ -97,7 +98,6 @@ export class ScoreService {
       const index = maxDistance - distance;
       status.score += this.DISTANCE_FIBONACCI[index];
     }
-    console.log(status);
   }
 
   /**
@@ -141,6 +141,5 @@ export class ScoreService {
       steps: 0,
     };
     this.getScore(scoreStatus3, new Position(0, 6), board as Board);
-    console.log(scoreStatus3.score);
   }
 }

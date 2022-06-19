@@ -15,6 +15,7 @@ export interface Hole {
 }
 
 export enum HoleType {
+  'temp' = -2,
   'half' = -0.5,
   'none' = -1,
   'empty' = 0,
@@ -73,9 +74,9 @@ export interface Neighbor {
 }
 
 export enum BoardType {
-  rectangular = 1,
-  diagonalRectangular = 2,
-  triangular = 3,
+  rectangular = 4,
+  octagon = 8,
+  hexagon = 6,
 }
 
 export interface Operation {

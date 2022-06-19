@@ -6,7 +6,7 @@ import {
   Neighbor,
   Operation,
   Position,
-} from '../../type';
+} from './type';
 
 export interface BoardStatus {
   board: Board;
@@ -22,6 +22,8 @@ export class Board {
   map: HoleType[][];
   boardType: BoardType;
   startPosition: Position;
+  width!: number;
+  height!: number;
   constructor(
     map: HoleType[][],
     boardType: BoardType,
@@ -30,6 +32,17 @@ export class Board {
     this.map = map;
     this.boardType = boardType;
     this.startPosition = startPosition;
+    this.updateSize();
+  }
+
+  updateSize() {
+    this.height = this.map.length;
+    this.width = this.map.reduce((previous, current) => {
+      if (previous < current.length) {
+        return current.length;
+      }
+      return previous;
+    }, 0);
   }
 
   getHoleType(position: Position): HoleType {
@@ -57,7 +70,7 @@ export class Board {
     return values.find((value) => value.direction === direction);
   }
 
-  getNeighborPositions(position: Position): Neighbor[] {
+  getNeighborPositions(position: Position, incluedEmpty = false): Neighbor[] {
     const neighbors: Neighbor[] = [];
     const { col, row } = position;
     if (this.boardType === BoardType.rectangular) {
@@ -81,7 +94,7 @@ export class Board {
         target: new Position(col + 2, row),
         direction: Direction.right,
       });
-    } else if (this.boardType === BoardType.diagonalRectangular) {
+    } else if (this.boardType === BoardType.octagon) {
       neighbors.push({
         bypass: new Position(col, row - 1),
         target: new Position(col, row - 2),
@@ -122,7 +135,7 @@ export class Board {
         target: new Position(col + 2, row + 2),
         direction: Direction.downRight,
       });
-    } else if (this.boardType === BoardType.triangular) {
+    } else if (this.boardType === BoardType.hexagon) {
       const hasHalf = this.map[position.row][0] === HoleType.half;
       neighbors.push({
         bypass: new Position(col - 1, row),
@@ -186,6 +199,9 @@ export class Board {
         });
       }
     }
+    if (incluedEmpty) {
+      return neighbors;
+    }
     return neighbors.filter(
       (value) =>
         !this.isOutrange(value.bypass) && !this.isOutrange(value.target)
@@ -209,7 +225,7 @@ export class Board {
           ? Direction.down
           : Direction.up;
     } else if (
-      this.boardType === BoardType.diagonalRectangular &&
+      this.boardType === BoardType.octagon &&
       Math.max(absDx, absDy) > 10
     ) {
       const radio = absDx / absDy;
@@ -233,7 +249,7 @@ export class Board {
             : Direction.upLeft;
       }
     } else if (
-      this.boardType === BoardType.triangular &&
+      this.boardType === BoardType.hexagon &&
       Math.max(absDx, absDy) > 10
     ) {
       const radio = absDx / absDy;
@@ -253,94 +269,3 @@ export class Board {
     return direction;
   }
 }
-
-export const BOARD_LIST: {
-  [name: string]: Board | string[];
-  list: string[];
-} = {
-  list: [
-    'englishBoard',
-    'englishDiagonalBoard',
-    'englishDiagonalBoard2',
-    'triangleBoard',
-    'triangleBoard2',
-    'triangleBoard3',
-  ],
-  englishBoard: new Board(
-    [
-      [-1, -1, 1, 1, 1, -1, -1],
-      [-1, -1, 1, 1, 1, -1, -1],
-      [1, 1, 1, 1, 1, 1, 1],
-      [1, 1, 1, 0, 1, 1, 1],
-      [1, 1, 1, 1, 1, 1, 1],
-      [-1, -1, 1, 1, 1, -1, -1],
-      [-1, -1, 1, 1, 1, -1, -1],
-    ],
-    BoardType.rectangular,
-    new Position(3, 3)
-  ),
-
-  englishDiagonalBoard: new Board(
-    [
-      [-1, -1, 1, 1, 1, -1, -1],
-      [-1, -1, 1, 1, 1, -1, -1],
-      [1, 1, 1, 1, 1, 1, 1],
-      [1, 1, 1, 0, 1, 1, 1],
-      [1, 1, 1, 1, 1, 1, 1],
-      [-1, -1, 1, 1, 1, -1, -1],
-      [-1, -1, 1, 1, 1, -1, -1],
-    ],
-    BoardType.diagonalRectangular,
-    new Position(3, 3)
-  ),
-
-  englishDiagonalBoard2: new Board(
-    [
-      [-1, -1, 1, 1, 1, -1, -1],
-      [-1, -1, 1, 1, 1, -1, -1],
-      [1, 6, 1, 2, 1, 1, 1],
-      [1, 1, 2, 0, 2, 1, 1],
-      [1, 1, 1, 2, 1, 1, 1],
-      [-1, -1, 1, 8, 1, -1, -1],
-      [-1, -1, 1, 1, 1, -1, -1],
-    ],
-    BoardType.diagonalRectangular,
-    new Position(3, 3)
-  ),
-
-  triangleBoard: new Board(
-    [
-      [-1, -1, 0, -1, -1],
-      [-0.5, -1, 1, 1, -1, -0.5],
-      [-1, 1, 1, 1, -1],
-      [-0.5, 1, 1, 1, 1, -0.5],
-      [1, 1, 1, 1, 1],
-    ],
-    BoardType.triangular,
-    new Position(2, 0)
-  ),
-
-  triangleBoard2: new Board(
-    [
-      [1, 1, 1, 1, 1],
-      [-0.5, 1, 1, 1, 1, -0.5],
-      [-1, 1, 1, 1, -1],
-      [-0.5, -1, 1, 1, -1, -0.5],
-      [-1, -1, 0, -1, -1],
-    ],
-    BoardType.triangular,
-    new Position(2, 4)
-  ),
-
-  triangleBoard3: new Board(
-    [
-      [-0.5, 1, 1, 1, -0.5],
-      [1, 1, 1, 1],
-      [-0.5, -1, 1, 1, -0.5],
-      [-1, 1, 1, 1],
-      [-0.5, -1, -1, 0, -0.5],
-    ],
-    BoardType.triangular,
-    new Position(3, 4)
-  ),
-};

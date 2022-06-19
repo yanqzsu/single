@@ -126,3 +126,30 @@ $ripple-color: $gray-4;
 .peg.peg-selected.peg.peg-jumpable {
   animation: ripple 1.5s linear infinite, pop 200ms ease 100ms 1 both;
 }
+
+
+.temp {
+  position: relative;
+  width: 70%;
+  height: 70%;
+  & .horizon{
+    background: $gray-7;
+    content: "";
+    height: 20%;
+    width: 100%;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    position: absolute;
+  }
+  & .vertical{
+    background: $gray-7;
+    content: "";
+    height: 100%;
+    width: 20%;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    position: absolute;
+  }
+}
