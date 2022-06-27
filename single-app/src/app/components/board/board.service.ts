@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Observable, ReplaySubject } from 'rxjs';
 import { BOARD_LIST } from 'src/app/board-list';
-import { Board, BoardStatus } from '../../board.type';
+import { BoardStatus } from 'src/app/status.type';
+import { deepClone } from 'src/app/util/util';
+import { Board } from '../../board.type';
 import {
   Direction,
   Hole,
@@ -32,80 +34,15 @@ export class BoardService {
 
     // board for test
     this.board = BOARD_LIST['triangleBoard11'] as Board;
+    console.log(this.board.serilize());
   }
 
   set board(board: Board) {
     this._board = board;
-    this.initBoardStatus();
-    this.updateStatus();
   }
 
   get board(): Board {
     return this._board;
-  }
-
-  updateStatus(selected?: Position): void {
-    let jumpablePegCount = 0;
-    let remainingPegCount = 0;
-    let lastPegPosition;
-    for (let row = 0; row < this.holesStatus.length; row++) {
-      for (let col = 0; col < this.holesStatus[row].length; col++) {
-        const position = new Position(col, row);
-        const hole = this.getHole(position)!;
-        remainingPegCount += hole.type > HoleType.e ? hole.type : 0;
-        const neighborPositions = this.board.getNeighborPositions(position);
-        const jumpable = neighborPositions.some(
-          (neighbor: { bypass: Position; target: Position }) => {
-            const bypassType = this.getHole(neighbor.bypass)!.type;
-            const targetType = this.getHole(neighbor.target)!.type;
-            if (
-              hole.type > HoleType.e &&
-              bypassType > HoleType.e &&
-              targetType === HoleType.e
-            ) {
-              return true;
-            }
-            return false;
-          }
-        );
-        if (jumpable) {
-          hole.status = HoleStatus.jumpable;
-          jumpablePegCount += 1;
-        } else {
-          hole.status = HoleStatus.normal;
-        }
-      }
-    }
-    if (selected && this.hasPeg(selected)) {
-      const hole = this.getHole(selected)!;
-      hole.status =
-        hole.status === HoleStatus.jumpable
-          ? HoleStatus.selectedJumpable
-          : HoleStatus.selectedUnjumpable;
-      if (remainingPegCount === 1) {
-        lastPegPosition = new Position(selected.col, selected.row);
-      } else {
-        const neighborPositions = this.board.getNeighborPositions(selected);
-        neighborPositions.forEach(
-          (neighbor: { bypass: Position; target: Position }) => {
-            const bypass = this.getHole(neighbor.bypass)!;
-            const target = this.getHole(neighbor.target)!;
-            if (bypass.type > HoleType.e && target.type === HoleType.e) {
-              target.status = HoleStatus.target;
-            }
-          }
-        );
-      }
-    }
-    const boardStatus: BoardStatus = {
-      remainingPegCount,
-      jumpablePegCount,
-      lastPegPosition,
-      holeStatus: this.deepClone<Hole[][]>(this.holesStatus),
-      board: this.board,
-      operationStack: this.operationStack,
-    };
-    this.boardStatusSubject.next(boardStatus);
   }
 
   drag(reverse: boolean, direction: Direction): boolean {
@@ -151,7 +88,7 @@ export class BoardService {
   hasPeg(position: Position): boolean {
     const hole = this.getHole(position);
     if (hole) {
-      return hole.type > HoleType.e;
+      return hole.type > HoleType.empty;
     }
     return false;
   }
@@ -173,10 +110,6 @@ export class BoardService {
     }
   }
 
-  getDirection(dx: number, dy: number): Direction | undefined {
-    return this._board?.getDirection(dx, dy);
-  }
-
   private move(
     neighbor: Neighbor,
     selected: Position,
@@ -188,9 +121,9 @@ export class BoardService {
     let result = false;
     if (reverse) {
       if (
-        start.type > HoleType.e &&
-        bypass.type >= HoleType.e &&
-        target.type >= HoleType.e
+        start.type > HoleType.empty &&
+        bypass.type >= HoleType.empty &&
+        target.type >= HoleType.empty
       ) {
         start.type = start.type - 1;
         bypass.type = bypass.type + 1;
@@ -199,9 +132,9 @@ export class BoardService {
       }
     } else {
       if (
-        start.type > HoleType.e &&
-        bypass.type > HoleType.e &&
-        target.type === HoleType.e
+        start.type > HoleType.empty &&
+        bypass.type > HoleType.empty &&
+        target.type === HoleType.empty
       ) {
         start.type = start.type - 1;
         bypass.type = bypass.type - 1;
@@ -218,23 +151,5 @@ export class BoardService {
       this.updateStatus(this.selectedPosition);
     }
     return result;
-  }
-
-  private deepClone<T>(obj: T): T {
-    // return obj.map((row) => row.slice());
-    return JSON.parse(JSON.stringify(obj));
-  }
-
-  private initBoardStatus(): void {
-    const holesStatus: Hole[][] = this.board.map.map((row: any[]) => {
-      return row.map((value: any) => {
-        return {
-          type: value,
-          status: HoleStatus.normal,
-        };
-      });
-    });
-    this.holesStatus = holesStatus;
-    this.operationStack = [];
   }
 }

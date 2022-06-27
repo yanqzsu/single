@@ -15,9 +15,10 @@ export interface Hole {
 }
 
 export enum HoleType {
-  'h' = -0.5,
-  'n' = -1,
-  'e' = 0,
+  'half' = -0.5,
+  'none' = -1,
+  'empty' = 0,
+  'temp' = 0.5,
   'one' = 1,
   'two' = 2,
   'three' = 3,
@@ -35,6 +36,62 @@ export enum HoleStatus {
   'normal' = 3, // normal peg
   'selectedUnjumpable' = 4, // selected & unjumpable peg
   'selectedJumpable' = 5, // selected & jumpable peg
+}
+
+export function getDirection(
+  dx: number,
+  dy: number,
+  boardType: BoardType
+): Direction | undefined {
+  let direction;
+  const absDx = Math.abs(dx);
+  const absDy = Math.abs(dy);
+  if (boardType === BoardType.rectangular && Math.max(absDx, absDy) > 10) {
+    direction =
+      absDx > absDy
+        ? dx > 0
+          ? Direction.right
+          : Direction.left
+        : dy > 0
+        ? Direction.down
+        : Direction.up;
+  } else if (boardType === BoardType.octagon && Math.max(absDx, absDy) > 10) {
+    const radio = absDx / absDy;
+    if (radio > 2 || radio < 0.5) {
+      direction =
+        absDx > absDy
+          ? dx > 0
+            ? Direction.right
+            : Direction.left
+          : dy > 0
+          ? Direction.down
+          : Direction.up;
+    } else {
+      direction =
+        dx > 0
+          ? dy > 0
+            ? Direction.downRight
+            : Direction.upRight
+          : dy > 0
+          ? Direction.downLeft
+          : Direction.upLeft;
+    }
+  } else if (boardType === BoardType.hexagon && Math.max(absDx, absDy) > 10) {
+    const radio = absDx / absDy;
+    if (radio > 2) {
+      direction = dx > 0 ? Direction.right : Direction.left;
+    } else {
+      direction =
+        dx > 0
+          ? dy > 0
+            ? Direction.downRight
+            : Direction.upRight
+          : dy > 0
+          ? Direction.downLeft
+          : Direction.upLeft;
+    }
+  }
+  return direction;
 }
 
 export class Position {

@@ -51,16 +51,16 @@ export class AboardService {
       for (let col = 0; col < this.holesStatus[row].length; col++) {
         const position = new Position(col, row);
         const hole = this.getHole(position)!;
-        remainingPegCount += hole.type > HoleType.e ? hole.type : 0;
+        remainingPegCount += hole.type > HoleType.empty ? hole.type : 0;
         const neighborPositions = this.board.getNeighborPositions(position);
         const jumpable = neighborPositions.some(
           (neighbor: { bypass: Position; target: Position }) => {
             const bypassType = this.getHole(neighbor.bypass)!.type;
             const targetType = this.getHole(neighbor.target)!.type;
             if (
-              hole.type > HoleType.e &&
-              bypassType > HoleType.e &&
-              targetType === HoleType.e
+              hole.type > HoleType.empty &&
+              bypassType > HoleType.empty &&
+              targetType === HoleType.empty
             ) {
               return true;
             }
@@ -89,7 +89,10 @@ export class AboardService {
           (neighbor: { bypass: Position; target: Position }) => {
             const bypass = this.getHole(neighbor.bypass)!;
             const target = this.getHole(neighbor.target)!;
-            if (bypass.type > HoleType.e && target.type === HoleType.e) {
+            if (
+              bypass.type > HoleType.empty &&
+              target.type === HoleType.empty
+            ) {
               target.status = HoleStatus.target;
             }
           }
@@ -150,7 +153,7 @@ export class AboardService {
   hasPeg(position: Position): boolean {
     const hole = this.getHole(position);
     if (hole) {
-      return hole.type > HoleType.e;
+      return hole.type > HoleType.empty;
     }
     return false;
   }
@@ -188,9 +191,9 @@ export class AboardService {
     let result = false;
     if (reverse) {
       if (
-        start.type > HoleType.e &&
-        bypass.type >= HoleType.e &&
-        target.type >= HoleType.e
+        start.type > HoleType.empty &&
+        bypass.type >= HoleType.empty &&
+        target.type >= HoleType.empty
       ) {
         start.type = start.type - 1;
         bypass.type = bypass.type + 1;
@@ -199,9 +202,9 @@ export class AboardService {
       }
     } else {
       if (
-        start.type > HoleType.e &&
-        bypass.type > HoleType.e &&
-        target.type === HoleType.e
+        start.type > HoleType.empty &&
+        bypass.type > HoleType.empty &&
+        target.type === HoleType.empty
       ) {
         start.type = start.type - 1;
         bypass.type = bypass.type - 1;
@@ -251,7 +254,7 @@ export class AboardService {
     };
     this.board.map.forEach((row, rowIndex) => {
       row.forEach((cell, colIndex) => {
-        if (cell > HoleType.e) {
+        if (cell > HoleType.empty) {
           const neighbors = this.board.getNeighborPositions(
             new Position(colIndex, rowIndex),
             true
@@ -272,7 +275,7 @@ export class AboardService {
             }
           });
         }
-        if (cell === HoleType.n) {
+        if (cell === HoleType.none) {
           this.board.map[rowIndex][colIndex] = HoleType.temp;
         }
       });
@@ -283,9 +286,9 @@ export class AboardService {
       if (this.board.boardType === BoardType.hexagon) {
         if (firstRowLength !== edge.innerWidth) {
           const newRow = [
-            HoleType.h,
+            HoleType.half,
             ...Array(edge.innerWidth - 2).fill(HoleType.temp),
-            HoleType.h,
+            HoleType.half,
           ];
           this.board.map.unshift(newRow);
         } else {
@@ -304,9 +307,9 @@ export class AboardService {
       if (this.board.boardType === BoardType.hexagon) {
         if (lastRowLength !== edge.innerWidth) {
           const newRow = [
-            HoleType.h,
+            HoleType.half,
             ...Array(edge.innerWidth - 2).fill(HoleType.temp),
-            HoleType.h,
+            HoleType.half,
           ];
           this.board.map.push(newRow);
         } else {
@@ -322,9 +325,9 @@ export class AboardService {
       this.board.map.forEach((row) => {
         if (this.board.boardType === BoardType.hexagon) {
           const firstCell = row[0];
-          if (firstCell === HoleType.h) {
+          if (firstCell === HoleType.half) {
             row[0] = HoleType.temp;
-            row.unshift(HoleType.h);
+            row.unshift(HoleType.half);
           } else {
             row.unshift(HoleType.temp);
           }
@@ -338,9 +341,9 @@ export class AboardService {
       this.board.map.forEach((row) => {
         if (this.board.boardType === BoardType.hexagon) {
           const lastCell = row[row.length - 1];
-          if (lastCell === HoleType.h) {
+          if (lastCell === HoleType.half) {
             row[row.length - 1] = HoleType.temp;
-            row.push(HoleType.h);
+            row.push(HoleType.half);
           } else {
             row.push(HoleType.temp);
           }

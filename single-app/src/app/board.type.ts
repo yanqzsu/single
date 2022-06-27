@@ -1,22 +1,38 @@
-import {
-  BoardType,
-  Direction,
-  Hole,
-  HoleType,
-  Neighbor,
-  Operation,
-  Position,
-} from './type';
+import { BoardType, Direction, HoleType, Neighbor, Position } from './type';
 
-export interface BoardStatus {
-  board: Board;
-  holeStatus: Hole[][];
-  jumpablePegCount: number;
-  remainingPegCount: number;
-  lastPegPosition?: Position;
-  operationStack: Operation[];
-  selectedPosition?: Position;
-}
+export const StringHoleTypeMap = new Map<string, HoleType>([
+  ['H', HoleType.half],
+  ['_', HoleType.none],
+  ['O', HoleType.empty],
+  ['1', HoleType.one],
+  ['2', HoleType.two],
+  ['3', HoleType.three],
+  ['4', HoleType.four],
+  ['5', HoleType.five],
+  ['6', HoleType.six],
+  ['7', HoleType.seven],
+  ['8', HoleType.eight],
+  ['9', HoleType.nine],
+]);
+
+export const HoleTypeStringMap = new Map<HoleType, string>([
+  [HoleType.half, 'H'],
+  [HoleType.none, '_'],
+  [HoleType.empty, 'O'],
+  [HoleType.one, '1'],
+  [HoleType.two, '2'],
+  [HoleType.three, '3'],
+  [HoleType.four, '4'],
+  [HoleType.five, '5'],
+  [HoleType.six, '6'],
+  [HoleType.seven, '7'],
+  [HoleType.eight, '8'],
+  [HoleType.nine, '9'],
+]);
+
+/**
+ * Board type and size for sharing
+ */
 
 export class Board {
   map: HoleType[][];
@@ -24,7 +40,6 @@ export class Board {
   startPosition: Position;
   width!: number;
   height!: number;
-  realWidth: number;
   constructor(
     map: HoleType[][],
     boardType: BoardType,
@@ -37,23 +52,56 @@ export class Board {
     this.startPosition = startPosition;
     this.height = height;
     this.width = width;
-    this.realWidth = boardType === BoardType.hexagon ? width - 1 : width;
   }
 
-  getHoleType(position: Position): HoleType {
-    return this.map[position.row][position.col];
+  serilize(): string {
+    const result = [
+      this.boardType,
+      this.width,
+      this.height,
+      this.startPosition.col,
+      this.startPosition.row,
+    ];
+    return (
+      result.join(' ') +
+      ' ' +
+      this.map
+        .map((row) => row.map((type) => HoleTypeStringMap.get(type)).join(''))
+        .join('')
+    );
   }
 
-  isOutrange(position: Position): boolean {
-    const rowMax = this.map.length - 1;
-    if (position.row < 0 || position.row > rowMax) {
-      return true;
+  static deserialize(str: string): Board {
+    const config = str.split(' ');
+    const boardType = new Number(config[0]) as BoardType;
+    const width = Number(config[1]);
+    const height = Number(config[2]);
+    const startPosition = new Position(Number(config[3]), Number(config[4]));
+    const map = [];
+    const mapArray = config[5]
+      .split('')
+      .map((char) => StringHoleTypeMap.get(char)!);
+    if (boardType === BoardType.hexagon) {
+      let index = 0;
+      let row = 0;
+      while (index < mapArray.length) {
+        const firstCell = mapArray[index];
+        if (firstCell === HoleType.half) {
+          map[row] = mapArray.slice(index, index + width);
+          index += width;
+          row++;
+        } else {
+          map[row] = mapArray.slice(index, index + width - 1);
+          index += width - 1;
+          row++;
+        }
+      }
+    } else {
+      for (let i = 0; i < height; i++) {
+        map[i] = mapArray.slice(i * width, (i + 1) * width);
+      }
     }
-    const columnMax = this.map[position.row].length - 1;
-    if (position.col < 0 || position.col > columnMax) {
-      return true;
-    }
-    return false;
+    return new Board(map, boardType, startPosition, width, height);
   }
 
   getNeighborPosition(
@@ -65,7 +113,7 @@ export class Board {
     return values.find((value) => value.direction === direction);
   }
 
-  getNeighborPositions(position: Position, incluedEmpty = false): Neighbor[] {
+  getNeighborPositions(position: Position): Neighbor[] {
     const neighbors: Neighbor[] = [];
     const { col, row } = position;
     if (this.boardType === BoardType.rectangular) {
@@ -131,7 +179,7 @@ export class Board {
         direction: Direction.downRight,
       });
     } else if (this.boardType === BoardType.hexagon) {
-      const hasHalf = this.map[position.row][0] === HoleType.h;
+      const hasHalf = this.map[position.row][0] === HoleType.half;
       neighbors.push({
         bypass: new Position(col - 1, row),
         target: new Position(col - 2, row),
@@ -194,73 +242,10 @@ export class Board {
         });
       }
     }
-    if (incluedEmpty) {
-      return neighbors;
-    }
-    return neighbors.filter(
-      (value) =>
-        !this.isOutrange(value.bypass) && !this.isOutrange(value.target)
-    );
-  }
-
-  getDirection(dx: number, dy: number): Direction | undefined {
-    let direction;
-    const absDx = Math.abs(dx);
-    const absDy = Math.abs(dy);
-    if (
-      this.boardType === BoardType.rectangular &&
-      Math.max(absDx, absDy) > 10
-    ) {
-      direction =
-        absDx > absDy
-          ? dx > 0
-            ? Direction.right
-            : Direction.left
-          : dy > 0
-          ? Direction.down
-          : Direction.up;
-    } else if (
-      this.boardType === BoardType.octagon &&
-      Math.max(absDx, absDy) > 10
-    ) {
-      const radio = absDx / absDy;
-      if (radio > 2 || radio < 0.5) {
-        direction =
-          absDx > absDy
-            ? dx > 0
-              ? Direction.right
-              : Direction.left
-            : dy > 0
-            ? Direction.down
-            : Direction.up;
-      } else {
-        direction =
-          dx > 0
-            ? dy > 0
-              ? Direction.downRight
-              : Direction.upRight
-            : dy > 0
-            ? Direction.downLeft
-            : Direction.upLeft;
-      }
-    } else if (
-      this.boardType === BoardType.hexagon &&
-      Math.max(absDx, absDy) > 10
-    ) {
-      const radio = absDx / absDy;
-      if (radio > 2) {
-        direction = dx > 0 ? Direction.right : Direction.left;
-      } else {
-        direction =
-          dx > 0
-            ? dy > 0
-              ? Direction.downRight
-              : Direction.upRight
-            : dy > 0
-            ? Direction.downLeft
-            : Direction.upLeft;
-      }
-    }
-    return direction;
+    return neighbors;
+    // return neighbors.filter(
+    //   (value) =>
+    //     !this.isOutrange(value.bypass) && !this.isOutrange(value.target)
+    // );
   }
 }
