@@ -15,10 +15,9 @@ export interface Hole {
 }
 
 export enum HoleType {
-  'temp' = -2,
-  'half' = -0.5,
-  'none' = -1,
-  'empty' = 0,
+  'h' = -0.5,
+  'n' = -1,
+  'e' = 0,
   'one' = 1,
   'two' = 2,
   'three' = 3,

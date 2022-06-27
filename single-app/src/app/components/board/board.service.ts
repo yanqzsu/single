@@ -26,9 +26,12 @@ export class BoardService {
   constructor() {
     this.boardStatus$ = this.boardStatusSubject.asObservable();
     // random board for test
-    this.board = BOARD_LIST[
-      BOARD_LIST.list[Math.floor(Math.random() * BOARD_LIST.list.length)]
-    ] as Board;
+    // this.board = BOARD_LIST[
+    //   BOARD_LIST.list[Math.floor(Math.random() * BOARD_LIST.list.length)]
+    // ] as Board;
+
+    // board for test
+    this.board = BOARD_LIST['triangleBoard11'] as Board;
   }
 
   set board(board: Board) {
@@ -49,16 +52,16 @@ export class BoardService {
       for (let col = 0; col < this.holesStatus[row].length; col++) {
         const position = new Position(col, row);
         const hole = this.getHole(position)!;
-        remainingPegCount += hole.type > HoleType.empty ? hole.type : 0;
+        remainingPegCount += hole.type > HoleType.e ? hole.type : 0;
         const neighborPositions = this.board.getNeighborPositions(position);
         const jumpable = neighborPositions.some(
           (neighbor: { bypass: Position; target: Position }) => {
             const bypassType = this.getHole(neighbor.bypass)!.type;
             const targetType = this.getHole(neighbor.target)!.type;
             if (
-              hole.type > HoleType.empty &&
-              bypassType > HoleType.empty &&
-              targetType === HoleType.empty
+              hole.type > HoleType.e &&
+              bypassType > HoleType.e &&
+              targetType === HoleType.e
             ) {
               return true;
             }
@@ -87,10 +90,7 @@ export class BoardService {
           (neighbor: { bypass: Position; target: Position }) => {
             const bypass = this.getHole(neighbor.bypass)!;
             const target = this.getHole(neighbor.target)!;
-            if (
-              bypass.type > HoleType.empty &&
-              target.type === HoleType.empty
-            ) {
+            if (bypass.type > HoleType.e && target.type === HoleType.e) {
               target.status = HoleStatus.target;
             }
           }
@@ -151,7 +151,7 @@ export class BoardService {
   hasPeg(position: Position): boolean {
     const hole = this.getHole(position);
     if (hole) {
-      return hole.type > HoleType.empty;
+      return hole.type > HoleType.e;
     }
     return false;
   }
@@ -188,9 +188,9 @@ export class BoardService {
     let result = false;
     if (reverse) {
       if (
-        start.type > HoleType.empty &&
-        bypass.type >= HoleType.empty &&
-        target.type >= HoleType.empty
+        start.type > HoleType.e &&
+        bypass.type >= HoleType.e &&
+        target.type >= HoleType.e
       ) {
         start.type = start.type - 1;
         bypass.type = bypass.type + 1;
@@ -199,9 +199,9 @@ export class BoardService {
       }
     } else {
       if (
-        start.type > HoleType.empty &&
-        bypass.type > HoleType.empty &&
-        target.type === HoleType.empty
+        start.type > HoleType.e &&
+        bypass.type > HoleType.e &&
+        target.type === HoleType.e
       ) {
         start.type = start.type - 1;
         bypass.type = bypass.type - 1;

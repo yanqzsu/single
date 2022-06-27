@@ -1,30 +1,17 @@
 import {
   BoardType,
   Direction,
-  Hole,
   HoleType,
   Neighbor,
-  Operation,
   Position,
-} from './type';
+} from 'src/app/type';
 
-export interface BoardStatus {
-  board: Board;
-  holeStatus: Hole[][];
-  jumpablePegCount: number;
-  remainingPegCount: number;
-  lastPegPosition?: Position;
-  operationStack: Operation[];
-  selectedPosition?: Position;
-}
-
-export class Board {
+export class Map {
   map: HoleType[][];
   boardType: BoardType;
   startPosition: Position;
   width!: number;
   height!: number;
-  realWidth: number;
   constructor(
     map: HoleType[][],
     boardType: BoardType,
@@ -37,8 +24,9 @@ export class Board {
     this.startPosition = startPosition;
     this.height = height;
     this.width = width;
-    this.realWidth = boardType === BoardType.hexagon ? width - 1 : width;
   }
+
+  toString() {}
 
   getHoleType(position: Position): HoleType {
     return this.map[position.row][position.col];

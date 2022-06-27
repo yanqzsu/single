@@ -14,11 +14,20 @@ export class BoardComponent {
   touchStartClientY: number = 0;
   boardStatus!: BoardStatus;
 
+  holeClass: string = '';
+
   constructor(private boardService: BoardService) {}
 
   ngOnInit(): void {
     this.boardService.boardStatus$.subscribe((status) => {
       this.boardStatus = status;
+      if (status.board.width > 9) {
+        this.holeClass = 'size-11';
+      } else if (status.board.width > 7) {
+        this.holeClass = 'size-9';
+      } else if (status.board.width > 5) {
+        this.holeClass = 'size-7';
+      }
     });
   }
 

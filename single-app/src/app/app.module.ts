@@ -11,7 +11,6 @@ import { BoardComponent } from './components/board/board.component';
 import { HoleComponent } from './components/hole/hole.component';
 import { ModalComponent } from './elements/modal/modal.component';
 import { ButtonComponent } from './elements/button/button.component';
-import { AboardComponent } from './components/aboard/aboard.component';
 
 @NgModule({
   declarations: [
@@ -23,7 +22,6 @@ import { AboardComponent } from './components/aboard/aboard.component';
     HoleComponent,
     ModalComponent,
     BoardComponent,
-    AboardComponent,
     HeaderComponent,
   ],
   imports: [BrowserModule, AppRoutingModule],

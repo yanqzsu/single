@@ -8,7 +8,7 @@ import { HoleType, HoleStatus, Hole } from '../../type';
 })
 export class HoleComponent {
   _hole: Hole = {
-    type: HoleType.empty,
+    type: HoleType.e,
     status: HoleStatus.normal,
   };
 
@@ -22,12 +22,12 @@ export class HoleComponent {
   @Input()
   set hole(hole: Hole) {
     this._hole = hole;
-    this.isHalf = hole.type === HoleType.half;
+    this.isHalf = hole.type === HoleType.h;
     this.spotClass = {
       'spot-target': hole.status === HoleStatus.target,
     };
     this.pegClass = {
-      'peg-0': hole.type === HoleType.empty,
+      'peg-0': hole.type === HoleType.e,
       'peg-1': hole.type === HoleType.one,
       'peg-2': hole.type === HoleType.two,
       'peg-3': hole.type === HoleType.three,
@@ -40,11 +40,11 @@ export class HoleComponent {
       'peg-selected':
         (hole.status === HoleStatus.selectedJumpable ||
           hole.status === HoleStatus.selectedUnjumpable) &&
-        hole.type > HoleType.empty,
+        hole.type > HoleType.e,
       'peg-jumpable':
         (hole.status === HoleStatus.jumpable ||
           hole.status === HoleStatus.selectedJumpable) &&
-        hole.type > HoleType.empty,
+        hole.type > HoleType.e,
     };
   }
   get hole(): Hole {
