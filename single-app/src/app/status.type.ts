@@ -11,17 +11,23 @@ export class BoardStatus {
   jumpablePegCount: number = 0;
   remainingPegCount: number;
   lastPegPosition?: Position;
-  operationStack: Operation[];
   selectedPosition?: Position;
   isRevert: boolean;
-  displayLimit!: { left: number; right: number; top: number; bottom: number };
+  edge = {
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    innerWidth: 0,
+    innerHeight: 0,
+  };
 
   constructor(board: Board, isRevert: boolean) {
     this.board = board;
     this.jumpablePegCount = 0;
     this.remainingPegCount = 0;
-    this.operationStack = [];
     this.selectedPosition = undefined;
+    this.lastPegPosition = this.board.startPosition.clone();
     this.isRevert = isRevert;
   }
 
@@ -47,6 +53,14 @@ export class BoardStatus {
       result = this.holesStatus[position.row][position.col];
     }
     return result;
+  }
+
+  hasPeg(position: Position): boolean {
+    const hole = this.getHole(position);
+    if (hole) {
+      return hole.type > HoleType.empty;
+    }
+    return false;
   }
 
   updateStatus(selected?: Position): void {
@@ -112,15 +126,29 @@ export class BoardStatus {
   }
 
   private initBoardStatus(): void {
-    const limit = {
+    const edge = {
       left: 0,
       right: this.board.width - 1,
       top: 0,
       bottom: this.board.height - 1,
+      innerWidth: 0,
+      innerHeight: 0,
     };
     const holesStatus: Hole[][] = this.board.map.map(
       (row: HoleType[], rowIndex: number) => {
         return row.map((value: HoleType, colIndex) => {
+          if (colIndex < edge.left) {
+            edge.left = colIndex;
+          }
+          if (colIndex > edge.right) {
+            edge.right = colIndex;
+          }
+          if (rowIndex < edge.top) {
+            edge.top = rowIndex;
+          }
+          if (rowIndex > edge.bottom) {
+            edge.bottom = rowIndex;
+          }
           return {
             type:
               this.isRevert && value === HoleType.none ? HoleType.temp : value,
@@ -130,6 +158,5 @@ export class BoardStatus {
       }
     );
     this.holesStatus = holesStatus;
-    this.operationStack = [];
   }
 }

@@ -103,6 +103,11 @@ export class Position {
     this.col = col ?? Position.invalidIndex;
     this.row = row ?? Position.invalidIndex;
   }
+
+  clone(): Position {
+    return new Position(this.col, this.row);
+  }
+
   isSame(position: Position): boolean {
     return this.col === position.col && this.row === position.row;
   }
