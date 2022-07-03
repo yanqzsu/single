@@ -1,29 +1,27 @@
 import { Injectable } from '@angular/core';
 import { Observable, ReplaySubject } from 'rxjs';
-import { BOARD_LIST } from 'src/app/board-list';
-import { BoardStatus } from 'src/app/status.type';
+import { BOARD_LIST } from 'src/app/types/board-list';
+import { BoardStatusBase } from 'src/app/types/board-status.base';
 import { deepClone } from 'src/app/util/util';
-import { Board } from '../../board.type';
+import { OutputBoard } from '../../types/output-board.type';
 import {
   Direction,
-  Hole,
-  HoleStatus,
-  HoleType,
-  Neighbor,
   Operation,
   Position,
-} from '../../type';
+  SelectedHole,
+} from '../../types/type';
 
 @Injectable({
   providedIn: 'root',
 })
 export class BoardService {
-  private _board!: Board;
-  private holesStatus!: Hole[][];
+  private _board!: OutputBoard;
+  private _boardStatus!: BoardStatusBase;
   private operationStack: Operation[] = [];
-  private selectedPosition: Position = new Position();
-  private boardStatusSubject = new ReplaySubject<BoardStatus>(1);
-  boardStatus$: Observable<BoardStatus>;
+  private selectedPosition?: SelectedHole;
+  private boardStatusSubject = new ReplaySubject<BoardStatusBase>(1);
+  boardStatus$: Observable<BoardStatusBase>;
+  isRevert: boolean = false;
 
   constructor() {
     this.boardStatus$ = this.boardStatusSubject.asObservable();
@@ -33,25 +31,51 @@ export class BoardService {
     // ] as Board;
 
     // board for test
-    this.board = BOARD_LIST['triangleBoard11'] as Board;
+    this.board = BOARD_LIST['triangleBoard11'] as OutputBoard;
     console.log(this.board.serilize());
   }
 
-  set board(board: Board) {
+  set board(board: OutputBoard) {
     this._board = board;
+    this.boardStatus = board.toBoardStatus(this.isRevert);
   }
 
-  get board(): Board {
+  get board(): OutputBoard {
     return this._board;
   }
 
-  drag(reverse: boolean, direction: Direction): boolean {
-    const endPosition = this.board.getNeighborPosition(
-      this.selectedPosition,
-      direction
-    );
-    if (endPosition) {
-      return this.move(endPosition, this.selectedPosition, reverse);
+  set boardStatus(boardStatus: BoardStatusBase) {
+    this._boardStatus = boardStatus;
+    this.boardStatusSubject.next(boardStatus);
+  }
+
+  get boardStatus(): BoardStatusBase {
+    return this._boardStatus;
+  }
+
+  setSelectedPosition(position: Position, refreshStatus?: boolean): void {
+    if (this._boardStatus.hasPeg(position)) {
+      this.selectedPosition = position;
+    }
+    if (refreshStatus) {
+      this._boardStatus.updateStatus(this.selectedPosition);
+    }
+  }
+
+  drag(reverse: boolean, startPosition: Position, dx: number, dy: number): boolean {
+    const direction = this._boardStatus.getDirection(dx, dy);
+    if (direction) {
+      const endPosition = this._boardStatus.getNeighborPosition(
+        startPosition,
+        direction
+      );
+      if (endPosition) {      
+        return this._boardStatus.move(
+          endPosition,
+          startPosition,
+          reverse
+        );
+      }
     }
     return false;
   }
@@ -62,20 +86,30 @@ export class BoardService {
     startPosition?: Position
   ): boolean {
     const position = startPosition || this.selectedPosition;
+    let result = false;
     if (position.isSame(endPosition)) {
-      this.updateStatus(endPosition);
-      return false;
+      this._boardStatus.updateStatus(endPosition);
+      return result;
     }
-    if (this.hasPeg(position) && !this.board.isOutrange(endPosition)) {
-      const neighborPositions = this.board.getNeighborPositions(position);
+    if (
+      this._boardStatus.hasPeg(position) &&
+      !this._boardStatus.isOutrange(endPosition)
+    ) {
+      const neighborPositions =
+        this._boardStatus.getNeighborPositions(position);
       const neighbor = neighborPositions.find((neighbor) =>
         neighbor.target.isSame(endPosition)
       );
       if (neighbor) {
-        return this.move(neighbor, position, reverse);
+        result = this._boardStatus.move(neighbor, position, reverse);
+        if (result) {
+          this.setSelectedPosition(neighbor.target, true);
+          if (this.isRevert)
+        }
       }
     }
-    return false;
+
+    return result;
   }
 
   undo(): void {
@@ -83,73 +117,5 @@ export class BoardService {
     if (operation) {
       this.click(true, operation.source, operation.target);
     }
-  }
-
-  hasPeg(position: Position): boolean {
-    const hole = this.getHole(position);
-    if (hole) {
-      return hole.type > HoleType.empty;
-    }
-    return false;
-  }
-
-  getHole(position: Position): Hole | undefined {
-    let result;
-    if (!this.board.isOutrange(position)) {
-      result = this.holesStatus[position.row][position.col];
-    }
-    return result;
-  }
-
-  setSelectedPosition(position: Position, refreshStatus?: boolean): void {
-    if (this.hasPeg(position)) {
-      this.selectedPosition = position;
-    }
-    if (refreshStatus) {
-      this.updateStatus(this.selectedPosition);
-    }
-  }
-
-  private move(
-    neighbor: Neighbor,
-    selected: Position,
-    reverse: boolean
-  ): boolean {
-    const start = this.getHole(selected)!;
-    const bypass = this.getHole(neighbor.bypass)!;
-    const target = this.getHole(neighbor.target)!;
-    let result = false;
-    if (reverse) {
-      if (
-        start.type > HoleType.empty &&
-        bypass.type >= HoleType.empty &&
-        target.type >= HoleType.empty
-      ) {
-        start.type = start.type - 1;
-        bypass.type = bypass.type + 1;
-        target.type = target.type + 1;
-        result = true;
-      }
-    } else {
-      if (
-        start.type > HoleType.empty &&
-        bypass.type > HoleType.empty &&
-        target.type === HoleType.empty
-      ) {
-        start.type = start.type - 1;
-        bypass.type = bypass.type - 1;
-        target.type = target.type + 1;
-        this.operationStack.push({
-          source: selected,
-          target: neighbor.target,
-        });
-        result = true;
-      }
-    }
-    if (result) {
-      this.selectedPosition = neighbor.target;
-      this.updateStatus(this.selectedPosition);
-    }
-    return result;
   }
 }

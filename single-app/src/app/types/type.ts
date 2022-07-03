@@ -38,62 +38,6 @@ export enum HoleStatus {
   'selectedJumpable' = 5, // selected & jumpable peg
 }
 
-export function getDirection(
-  dx: number,
-  dy: number,
-  boardType: BoardType
-): Direction | undefined {
-  let direction;
-  const absDx = Math.abs(dx);
-  const absDy = Math.abs(dy);
-  if (boardType === BoardType.rectangular && Math.max(absDx, absDy) > 10) {
-    direction =
-      absDx > absDy
-        ? dx > 0
-          ? Direction.right
-          : Direction.left
-        : dy > 0
-        ? Direction.down
-        : Direction.up;
-  } else if (boardType === BoardType.octagon && Math.max(absDx, absDy) > 10) {
-    const radio = absDx / absDy;
-    if (radio > 2 || radio < 0.5) {
-      direction =
-        absDx > absDy
-          ? dx > 0
-            ? Direction.right
-            : Direction.left
-          : dy > 0
-          ? Direction.down
-          : Direction.up;
-    } else {
-      direction =
-        dx > 0
-          ? dy > 0
-            ? Direction.downRight
-            : Direction.upRight
-          : dy > 0
-          ? Direction.downLeft
-          : Direction.upLeft;
-    }
-  } else if (boardType === BoardType.hexagon && Math.max(absDx, absDy) > 10) {
-    const radio = absDx / absDy;
-    if (radio > 2) {
-      direction = dx > 0 ? Direction.right : Direction.left;
-    } else {
-      direction =
-        dx > 0
-          ? dy > 0
-            ? Direction.downRight
-            : Direction.upRight
-          : dy > 0
-          ? Direction.downLeft
-          : Direction.upLeft;
-    }
-  }
-  return direction;
-}
-
 export class Position {
   private static readonly invalidIndex = -1;
   col: number;
@@ -143,4 +87,46 @@ export enum BoardType {
 export interface Operation {
   target: Position;
   source: Position;
+}
+
+export interface Edge {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+  innerWidth: number;
+  innerHeight: number;
+}
+
+/**
+ * BoardStatus for painting
+ */
+export interface BoardStatus {
+  holesStatus: Hole[][];
+  jumpablePegCount: number;
+  remainingPegCount: number;
+  firstPegPosition?: Position;
+  lastPegPosition?: Position;
+  selectedPosition?: Position;
+  selectedDirection?: Direction[];
+  isRevert: boolean;
+  edge: Edge;
+}
+
+export interface ScoreStatus {
+  remainingPegCount: number;
+  jumpablePegCount: number;
+  currentCombo: number;
+  maxCombo: number;
+  comboCount: number;
+  takenCount: number;
+  score: number;
+  steps: number;
+}
+
+export interface SelectedHole {
+  hole: Hole;
+  position: Position;
+  directions: Direction[];
+  neiborbors: Neighbor[];
 }

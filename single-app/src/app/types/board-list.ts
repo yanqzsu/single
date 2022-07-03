@@ -1,8 +1,8 @@
-import { Board } from './board.type';
+import { OutputBoard } from './output-board.type';
 import { BoardType, Position } from './type';
 
 export const BOARD_LIST: {
-  [name: string]: Board | string[];
+  [name: string]: OutputBoard | string[];
   list: string[];
 } = {
   list: [
@@ -14,7 +14,7 @@ export const BOARD_LIST: {
     'triangleBoard3',
     'triangleBoard11',
   ],
-  englishBoard: new Board(
+  englishBoard: new OutputBoard(
     [
       [-1, -1, 1, 1, 1, -1, -1],
       [-1, -1, 1, 1, 1, -1, -1],
@@ -25,12 +25,10 @@ export const BOARD_LIST: {
       [-1, -1, 1, 1, 1, -1, -1],
     ],
     BoardType.rectangular,
-    new Position(3, 3),
-    7,
-    7
+    new Position(3, 3)
   ),
 
-  englishDiagonalBoard: new Board(
+  englishDiagonalBoard: new OutputBoard(
     [
       [-1, -1, 1, 1, 1, -1, -1],
       [-1, -1, 1, 1, 1, -1, -1],
@@ -41,12 +39,10 @@ export const BOARD_LIST: {
       [-1, -1, 1, 1, 1, -1, -1],
     ],
     BoardType.octagon,
-    new Position(3, 3),
-    7,
-    7
+    new Position(3, 3)
   ),
 
-  englishDiagonalBoard2: new Board(
+  englishDiagonalBoard2: new OutputBoard(
     [
       [-1, -1, 1, 1, 1, -1, -1],
       [-1, -1, 1, 1, 1, -1, -1],
@@ -57,12 +53,10 @@ export const BOARD_LIST: {
       [-1, -1, 1, 1, 1, -1, -1],
     ],
     BoardType.octagon,
-    new Position(3, 3),
-    7,
-    7
+    new Position(3, 3)
   ),
 
-  triangleBoard7: new Board(
+  triangleBoard7: new OutputBoard(
     [
       [-1, -1, -1, -1, -1, -1, -1],
       [-0.5, -1, -1, -1, 0, -1, -1, -0.5],
@@ -76,12 +70,10 @@ export const BOARD_LIST: {
       [-0.5, -1, -1, -1, -1, -1, -1, -0.5],
     ],
     BoardType.hexagon,
-    new Position(2, 0),
-    8,
-    10
+    new Position(2, 0)
   ),
 
-  triangleBoard5: new Board(
+  triangleBoard5: new OutputBoard(
     [
       [1, 1, 1, 1, 1],
       [-0.5, 1, 1, 1, 1, -0.5],
@@ -90,12 +82,10 @@ export const BOARD_LIST: {
       [-1, -1, 0, -1, -1],
     ],
     BoardType.hexagon,
-    new Position(2, 4),
-    6,
-    5
+    new Position(2, 4)
   ),
 
-  triangleBoard10: new Board(
+  triangleBoard10: new OutputBoard(
     [
       [-1, -1, -1, -1, -1, -1, -1, -1, -1],
       [-0.5, -1, -1, -1, 0, -1, -1, -1, -1, -0.5],
@@ -109,11 +99,9 @@ export const BOARD_LIST: {
       [-0.5, -1, -1, -1, -1, -1, -1, -1, -1, -0.5],
     ],
     BoardType.hexagon,
-    new Position(3, 4),
-    10,
-    10
+    new Position(3, 4)
   ),
-  triangleBoard11: new Board(
+  triangleBoard11: new OutputBoard(
     [
       [-0.5, -1, -1, -1, 0, -1, -1, -1, -1, -1, -0.5],
       [-1, -1, 1, 1, -1, -1, -1, -1, -1, -1],
@@ -128,8 +116,6 @@ export const BOARD_LIST: {
       [-0.5, -1, -1, -1, -1, -1, -1, -1, -1, -1, -0.5],
     ],
     BoardType.hexagon,
-    new Position(3, 4),
-    11,
-    11
+    new Position(3, 4)
   ),
 };

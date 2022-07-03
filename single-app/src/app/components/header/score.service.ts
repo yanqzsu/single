@@ -1,21 +1,9 @@
-import { ThisReceiver } from '@angular/compiler';
 import { Injectable } from '@angular/core';
 import { Observable, of, switchMap } from 'rxjs';
 import { BoardService } from '../board/board.service';
-import { Board, BoardStatus } from '../../board.type';
-import { HoleType, Position } from '../../type';
-import { BOARD_LIST } from 'src/app/board-list';
-
-export interface ScoreStatus {
-  remainingPegCount: number;
-  jumpablePegCount: number;
-  currentCombo: number;
-  maxCombo: number;
-  comboCount: number;
-  takenCount: number;
-  score: number;
-  steps: number;
-}
+import { OutputBoard } from '../../types/output-board.type';
+import { BoardStatus, Position, ScoreStatus } from '../../types/type';
+import { BOARD_LIST } from 'src/app/types/board-list';
 
 @Injectable({
   providedIn: 'root',
@@ -83,7 +71,7 @@ export class ScoreService {
   private getScore(
     status: ScoreStatus,
     lastPegPosition: Position | undefined,
-    board: Board
+    board: OutputBoard
   ) {
     status.score =
       status.takenCount * this.TAKEN_BONUS +
@@ -91,7 +79,7 @@ export class ScoreService {
       status.maxCombo * this.MAX_COMBO_BONUS;
 
     if (lastPegPosition) {
-      const distance = lastPegPosition.getDistance(board.startPosition);
+      const distance = lastPegPosition.getDistance(board.singluarityPosition);
       const maxDistance = lastPegPosition.getDistance(
         new Position(board.map[0].length - 1, board.map.length - 1)
       );
@@ -116,7 +104,7 @@ export class ScoreService {
       currentCombo: 0,
       steps: 0,
     };
-    this.getScore(scoreStatus1, new Position(0, 0), board as Board);
+    this.getScore(scoreStatus1, new Position(0, 0), board as OutputBoard);
     console.log(scoreStatus1.score);
     const scoreStatus2 = {
       maxCombo: 5,
@@ -128,7 +116,7 @@ export class ScoreService {
       currentCombo: 0,
       steps: 0,
     };
-    this.getScore(scoreStatus2, new Position(3, 3), board as Board);
+    this.getScore(scoreStatus2, new Position(3, 3), board as OutputBoard);
     console.log(scoreStatus2.score);
     const scoreStatus3 = {
       maxCombo: 6,
@@ -140,6 +128,6 @@ export class ScoreService {
       currentCombo: 0,
       steps: 0,
     };
-    this.getScore(scoreStatus3, new Position(0, 6), board as Board);
+    this.getScore(scoreStatus3, new Position(0, 6), board as OutputBoard);
   }
 }
