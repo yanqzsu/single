@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { BoardStatusBase } from 'src/app/types/board-status.base';
 import { isOutrange } from 'src/app/util/util';
-import { Direction, Position } from '../../types/type';
+import { Position } from '../../types/type';
 import { isTouchEvent, getEventPosition, silentEvent } from '../../util/dom';
 import { BoardService } from './board.service';
 
@@ -16,7 +16,6 @@ export class BoardComponent {
   startPosition?: Position;
   endPosition?: Position;
   boardStatus!: BoardStatusBase;
-
   holeClass: string = '';
 
   constructor(private boardService: BoardService) {}
@@ -82,8 +81,11 @@ export class BoardComponent {
         );
       } else {
         // just refresh
-        this.boardService.setSelectedPosition(this.startPosition, false);
+        this.startPosition = this.boardService.setSelectedHole(
+          this.startPosition
+        );
       }
+      silentEvent(event);
       return;
     }
     // touch and drag
@@ -94,27 +96,5 @@ export class BoardComponent {
       dy
     );
     silentEvent(event);
-  }
-
-  private getDirection(event: TouchEvent | MouseEvent): Direction | undefined {
-    let direction;
-    const isTouch = isTouchEvent(event);
-    if (
-      isTouch &&
-      (event.touches.length > 0 || event.targetTouches.length > 0)
-    ) {
-      return direction; // Ignore if still touching with one or more fingers
-    }
-    const touchEndClientX = isTouch
-      ? event.changedTouches[0].clientX
-      : event.clientX;
-    const touchEndClientY = isTouch
-      ? event.changedTouches[0].clientY
-      : event.clientY;
-
-    const dx = touchEndClientX - this.touchStartClientX;
-    const dy = touchEndClientY - this.touchStartClientY;
-    direction = this.getDirection(dx, dy);
-    return direction;
   }
 }

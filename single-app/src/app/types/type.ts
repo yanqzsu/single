@@ -127,6 +127,5 @@ export interface ScoreStatus {
 export interface SelectedHole {
   hole: Hole;
   position: Position;
-  directions: Direction[];
   neiborbors: Neighbor[];
 }

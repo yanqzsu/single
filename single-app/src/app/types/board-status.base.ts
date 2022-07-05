@@ -9,6 +9,7 @@ import {
   HoleType,
   Neighbor,
   Position,
+  SelectedHole,
 } from './type';
 
 export interface BoardStatusInterface {
@@ -44,7 +45,7 @@ export abstract class BoardStatusBase {
   }
 
   abstract getNeighborPositions(position: Position): Neighbor[];
-  abstract getDirection(dx: number, dy: number): Direction | undefined;
+  abstract getDirection(dx: number, dy: number): Direction;
 
   getNeighborPosition(
     position: Position,
@@ -86,10 +87,11 @@ export abstract class BoardStatusBase {
     return false;
   }
 
-  updateStatus(selected?: Position): void {
+  updateStatus(selected?: Position): Position | undefined {
     let jumpablePegCount = 0;
     let remainingPegCount = 0;
     let lastPegPosition;
+    // Initialize status
     for (let row = 0; row < this.holes.length; row++) {
       for (let col = 0; col < this.holes[row].length; col++) {
         const position = new Position(col, row);
@@ -118,6 +120,8 @@ export abstract class BoardStatusBase {
         }
       }
     }
+    // Update selected position
+    let position;
     if (selected && this.hasPeg(selected)) {
       const hole = this.getHole(selected)!;
       hole.status =
@@ -141,10 +145,12 @@ export abstract class BoardStatusBase {
           }
         );
       }
+      position = selected;
     }
     this.remainingPegCount = remainingPegCount;
     this.jumpablePegCount = jumpablePegCount;
     this.lastPegPosition = lastPegPosition;
+    return position;
   }
 
   move(neighbor: Neighbor, selected: Position, reverse: boolean): boolean {
@@ -172,16 +178,8 @@ export abstract class BoardStatusBase {
         start.type = start.type - 1;
         bypass.type = bypass.type - 1;
         target.type = target.type + 1;
-        this.operationStack.push({
-          source: selected,
-          target: neighbor.target,
-        });
         result = true;
       }
-    }
-    if (result) {
-      this.selectedPosition = neighbor.target;
-      this.updateStatus(this.selectedPosition);
     }
     return result;
   }

@@ -2,8 +2,14 @@ import { Injectable } from '@angular/core';
 import { Observable, of, switchMap } from 'rxjs';
 import { BoardService } from '../board/board.service';
 import { OutputBoard } from '../../types/output-board.type';
-import { BoardStatus, Position, ScoreStatus } from '../../types/type';
+import {
+  BoardStatus,
+  Position,
+  ScoreStatus,
+  Operation,
+} from '../../types/type';
 import { BOARD_LIST } from 'src/app/types/board-list';
+import { BoardStatusBase } from 'src/app/types/board-status.base';
 
 @Injectable({
   providedIn: 'root',
@@ -22,20 +28,22 @@ export class ScoreService {
         return of<ScoreStatus>(this.updateScore(boardStatus));
       })
     );
-    this.test();
+    // this.test();
   }
 
-  updateScore(boardStatus: BoardStatus): ScoreStatus {
-    const {
-      remainingPegCount,
-      jumpablePegCount,
-      operationStack,
-      lastPegPosition,
-      board,
-    } = boardStatus;
+  updateScore(boardStatus: BoardStatusBase): ScoreStatus {
+    // const {
+    //   remainingPegCount,
+    //   jumpablePegCount,
+    //   operationStack,
+    //   lastPegPosition,
+    //   board,
+    // } = boardStatus;
+    const lastPegPosition = new Position(-1, -1);
+    const operationStack = [] as Operation[];
     const status: ScoreStatus = {
-      remainingPegCount,
-      jumpablePegCount,
+      remainingPegCount: 0,
+      jumpablePegCount: 0,
       currentCombo: 0,
       maxCombo: 0,
       comboCount: 0,
@@ -64,27 +72,23 @@ export class ScoreService {
         status.steps = 1;
       }
     }
-    this.getScore(status, lastPegPosition, board);
+    this.getScore(status, lastPegPosition);
     return status;
   }
 
-  private getScore(
-    status: ScoreStatus,
-    lastPegPosition: Position | undefined,
-    board: OutputBoard
-  ) {
+  private getScore(status: ScoreStatus, lastPegPosition: Position | undefined) {
     status.score =
       status.takenCount * this.TAKEN_BONUS +
       status.comboCount * this.COMBO_BONUS +
       status.maxCombo * this.MAX_COMBO_BONUS;
 
     if (lastPegPosition) {
-      const distance = lastPegPosition.getDistance(board.singluarityPosition);
-      const maxDistance = lastPegPosition.getDistance(
-        new Position(board.map[0].length - 1, board.map.length - 1)
-      );
-      const index = maxDistance - distance;
-      status.score += this.DISTANCE_FIBONACCI[index];
+      // const distance = lastPegPosition.getDistance(board.singluarityPosition!);
+      // const maxDistance = lastPegPosition.getDistance(
+      //   new Position(board.map[0].length - 1, board.map.length - 1)
+      // );
+      // const index = maxDistance - distance;
+      // status.score += this.DISTANCE_FIBONACCI[index];
     }
   }
 
@@ -92,42 +96,42 @@ export class ScoreService {
    * http://www.gibell.net/pegsolitaire/Catalogs/English33/index.htm
    * @param boardStatus
    */
-  private test(): void {
-    const board = BOARD_LIST['englishBoard'];
-    const scoreStatus1 = {
-      maxCombo: 5,
-      comboCount: 13,
-      takenCount: 31,
-      score: 0,
-      remainingPegCount: 0,
-      jumpablePegCount: 0,
-      currentCombo: 0,
-      steps: 0,
-    };
-    this.getScore(scoreStatus1, new Position(0, 0), board as OutputBoard);
-    console.log(scoreStatus1.score);
-    const scoreStatus2 = {
-      maxCombo: 5,
-      comboCount: 13,
-      takenCount: 31,
-      score: 0,
-      remainingPegCount: 0,
-      jumpablePegCount: 0,
-      currentCombo: 0,
-      steps: 0,
-    };
-    this.getScore(scoreStatus2, new Position(3, 3), board as OutputBoard);
-    console.log(scoreStatus2.score);
-    const scoreStatus3 = {
-      maxCombo: 6,
-      comboCount: 14,
-      takenCount: 31,
-      score: 0,
-      remainingPegCount: 0,
-      jumpablePegCount: 0,
-      currentCombo: 0,
-      steps: 0,
-    };
-    this.getScore(scoreStatus3, new Position(0, 6), board as OutputBoard);
-  }
+  // private test(): void {
+  //   const board = BOARD_LIST['englishBoard'];
+  //   const scoreStatus1 = {
+  //     maxCombo: 5,
+  //     comboCount: 13,
+  //     takenCount: 31,
+  //     score: 0,
+  //     remainingPegCount: 0,
+  //     jumpablePegCount: 0,
+  //     currentCombo: 0,
+  //     steps: 0,
+  //   };
+  //   this.getScore(scoreStatus1, new Position(0, 0), board as OutputBoard);
+  //   console.log(scoreStatus1.score);
+  //   const scoreStatus2 = {
+  //     maxCombo: 5,
+  //     comboCount: 13,
+  //     takenCount: 31,
+  //     score: 0,
+  //     remainingPegCount: 0,
+  //     jumpablePegCount: 0,
+  //     currentCombo: 0,
+  //     steps: 0,
+  //   };
+  //   this.getScore(scoreStatus2, new Position(3, 3), board as OutputBoard);
+  //   console.log(scoreStatus2.score);
+  //   const scoreStatus3 = {
+  //     maxCombo: 6,
+  //     comboCount: 14,
+  //     takenCount: 31,
+  //     score: 0,
+  //     remainingPegCount: 0,
+  //     jumpablePegCount: 0,
+  //     currentCombo: 0,
+  //     steps: 0,
+  //   };
+  //   this.getScore(scoreStatus3, new Position(0, 6), board as OutputBoard);
+  // }
 }

@@ -2,14 +2,9 @@ import { Injectable } from '@angular/core';
 import { Observable, ReplaySubject } from 'rxjs';
 import { BOARD_LIST } from 'src/app/types/board-list';
 import { BoardStatusBase } from 'src/app/types/board-status.base';
-import { deepClone } from 'src/app/util/util';
+import { deepClone, isOutrange } from 'src/app/util/util';
 import { OutputBoard } from '../../types/output-board.type';
-import {
-  Direction,
-  Operation,
-  Position,
-  SelectedHole,
-} from '../../types/type';
+import { Direction, Operation, Position, SelectedHole } from '../../types/type';
 
 @Injectable({
   providedIn: 'root',
@@ -18,7 +13,6 @@ export class BoardService {
   private _board!: OutputBoard;
   private _boardStatus!: BoardStatusBase;
   private operationStack: Operation[] = [];
-  private selectedPosition?: SelectedHole;
   private boardStatusSubject = new ReplaySubject<BoardStatusBase>(1);
   boardStatus$: Observable<BoardStatusBase>;
   isRevert: boolean = false;
@@ -53,63 +47,65 @@ export class BoardService {
     return this._boardStatus;
   }
 
-  setSelectedPosition(position: Position, refreshStatus?: boolean): void {
+  setSelectedHole(position: Position): Position | undefined {
     if (this._boardStatus.hasPeg(position)) {
-      this.selectedPosition = position;
+      return this._boardStatus.updateStatus(position);
     }
-    if (refreshStatus) {
-      this._boardStatus.updateStatus(this.selectedPosition);
-    }
+    return position;
   }
 
-  drag(reverse: boolean, startPosition: Position, dx: number, dy: number): boolean {
+  drag(
+    reverse: boolean,
+    startPosition: Position,
+    dx: number,
+    dy: number
+  ): Position | undefined {
     const direction = this._boardStatus.getDirection(dx, dy);
     if (direction) {
-      const endPosition = this._boardStatus.getNeighborPosition(
+      const endNeighbor = this._boardStatus.getNeighborPosition(
         startPosition,
         direction
       );
-      if (endPosition) {      
-        return this._boardStatus.move(
-          endPosition,
-          startPosition,
-          reverse
-        );
+      if (endNeighbor) {
+        if (this._boardStatus.move(endNeighbor, startPosition, reverse)) {
+          this.operationStack.push({
+            target: endNeighbor.target,
+            source: startPosition,
+          });
+          this.setSelectedHole(endNeighbor.target);
+          return endNeighbor.target;
+        }
       }
     }
-    return false;
+    return undefined;
   }
 
   click(
     reverse: boolean,
     endPosition: Position,
-    startPosition?: Position
-  ): boolean {
-    const position = startPosition || this.selectedPosition;
-    let result = false;
-    if (position.isSame(endPosition)) {
-      this._boardStatus.updateStatus(endPosition);
-      return result;
-    }
+    startPosition: Position
+  ): Position | undefined {
     if (
-      this._boardStatus.hasPeg(position) &&
-      !this._boardStatus.isOutrange(endPosition)
+      this._boardStatus.hasPeg(startPosition) &&
+      !isOutrange(endPosition, this._boardStatus.holes)
     ) {
       const neighborPositions =
-        this._boardStatus.getNeighborPositions(position);
+        this._boardStatus.getNeighborPositions(startPosition);
       const neighbor = neighborPositions.find((neighbor) =>
         neighbor.target.isSame(endPosition)
       );
       if (neighbor) {
-        result = this._boardStatus.move(neighbor, position, reverse);
-        if (result) {
-          this.setSelectedPosition(neighbor.target, true);
-          if (this.isRevert)
+        if (this._boardStatus.move(neighbor, startPosition, reverse)) {
+          this.operationStack.push({
+            target: neighbor.target,
+            source: startPosition,
+          });
+          this.setSelectedHole(neighbor.target);
+          return neighbor.target;
         }
       }
     }
-
-    return result;
+    return startPosition;
   }
 
   undo(): void {

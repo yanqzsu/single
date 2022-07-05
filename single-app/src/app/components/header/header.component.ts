@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { ScoreService, ScoreStatus } from './score.service';
+import { ScoreStatus } from 'src/app/types/type';
+import { ScoreService } from './score.service';
 
 @Component({
   selector: 'app-header',

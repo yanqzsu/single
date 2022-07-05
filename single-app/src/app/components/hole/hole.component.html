@@ -1,7 +1,7 @@
 <div class="hole" [ngClass]="holeClass">
   <div class="spot" *ngIf="hole.type >= 0" [ngClass]="spotClass"></div>
   <div class="peg" *ngIf="hole.type > 0" [ngClass]="pegClass"></div>
-  <div class="temp" *ngIf="hole.type === -2">
+  <div class="temp" *ngIf="hole.type === 0.5">
     <div class="horizon"></div>
     <div class="vertical"></div>
   </div>
