@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
-import { BoardStatusBase } from 'src/app/types/board-status.base';
+import { BoardStatusBase } from 'src/app/types/status/board-status.base';
 import { isOutrange } from 'src/app/util/util';
-import { Position } from '../../types/type';
+import { Hole, Position } from '../../types/type';
 import { isTouchEvent, getEventPosition, silentEvent } from '../../util/dom';
 import { BoardService } from './board.service';
 
@@ -15,20 +15,21 @@ export class BoardComponent {
   touchStartClientY: number = 0;
   startPosition?: Position;
   endPosition?: Position;
-  boardStatus!: BoardStatusBase;
-  holeClass: string = '';
+  holes!: Hole[][];
+  boardlass: string = '';
 
   constructor(private boardService: BoardService) {}
 
   ngOnInit(): void {
-    this.boardService.boardStatus$.subscribe((status) => {
-      this.boardStatus = status;
-      if (status.maxWidth > 9) {
-        this.holeClass = 'size-11';
-      } else if (status.maxWidth > 7) {
-        this.holeClass = 'size-9';
-      } else if (status.maxWidth > 5) {
-        this.holeClass = 'size-7';
+    this.boardService.holeStatus$.subscribe((holes) => {
+      this.holes = holes;
+      const maxWidth = Math.max(this.holes?.[0].length, this.holes?.[1].length);
+      if (maxWidth > 9) {
+        this.boardlass = 'size-11';
+      } else if (maxWidth > 7) {
+        this.boardlass = 'size-9';
+      } else if (maxWidth > 5) {
+        this.boardlass = 'size-7';
       }
     });
   }
@@ -41,7 +42,7 @@ export class BoardComponent {
       return; // Ignore if still touching with one or more fingers
     }
     const position = new Position(col, row);
-    if (!isOutrange(position, this.boardStatus.holes)) {
+    if (this.boardService.boardStatus.hasPeg(position)) {
       this.startPosition = position;
     }
     const touchPosition = getEventPosition(event);
@@ -71,30 +72,29 @@ export class BoardComponent {
     const absDx = Math.abs(dx);
     const absDy = Math.abs(dy);
     if (Math.max(absDx, absDy) <= 10) {
-      if (row !== undefined && col !== undefined) {
+      const position = new Position(col, row);
+      if (position.isSame(this.startPosition)) {
+        // just refresh
+        this.startPosition = this.boardService.setSelectedHole(
+          this.startPosition
+        );
+      } else {
         // click
-        const position = new Position(col, row);
         this.startPosition = this.boardService.click(
           false,
           position,
           this.startPosition
         );
-      } else {
-        // just refresh
-        this.startPosition = this.boardService.setSelectedHole(
-          this.startPosition
-        );
       }
-      silentEvent(event);
-      return;
+    } else {
+      // touch and drag
+      this.startPosition = this.boardService.drag(
+        false,
+        this.startPosition,
+        dx,
+        dy
+      );
     }
-    // touch and drag
-    this.startPosition = this.boardService.drag(
-      false,
-      this.startPosition,
-      dx,
-      dy
-    );
     silentEvent(event);
   }
 }

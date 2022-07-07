@@ -1,17 +1,8 @@
-import { BoardStatusBase } from './board-status.base';
-import { HexagonStatus } from './hexagon-status';
-import { OctagonStatus } from './octagon-status';
-import { RectStatus } from './rect-status';
-import {
-  BoardStatus,
-  BoardType,
-  Direction,
-  Hole,
-  HoleStatus,
-  HoleType,
-  Neighbor,
-  Position,
-} from './type';
+import { BoardStatusBase } from './status/board-status.base';
+import { HexagonStatus } from './status/hexagon-status';
+import { OctagonStatus } from './status/octagon-status';
+import { RectStatus } from './status/rect-status';
+import { BoardType, Hole, HoleStatus, HoleType, Position } from './type';
 
 export const StringHoleTypeMap = new Map<string, HoleType>([
   ['H', HoleType.half],

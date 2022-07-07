@@ -1,3 +1,4 @@
+import { isOutrange } from '../../util/util';
 import { BoardStatusBase } from './board-status.base';
 import {
   Neighbor,
@@ -6,7 +7,7 @@ import {
   HoleType,
   BoardType,
   HoleStatus,
-} from './type';
+} from '../type';
 
 export class HexagonStatus extends BoardStatusBase {
   override boardType: BoardType = BoardType.hexagon;
@@ -76,7 +77,7 @@ export class HexagonStatus extends BoardStatusBase {
         direction: Direction.downRight,
       });
     }
-    return neighbors;
+    return neighbors.filter((value) => !isOutrange(value.target, this.holes));
   }
 
   getDirection(dx: number, dy: number): Direction {

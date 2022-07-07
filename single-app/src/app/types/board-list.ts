@@ -1,4 +1,4 @@
-import { OutputBoard } from './output-board.type';
+import { OutputBoard } from './output-board';
 import { BoardType, Position } from './type';
 
 export const BOARD_LIST: {

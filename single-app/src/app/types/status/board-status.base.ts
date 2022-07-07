@@ -1,5 +1,5 @@
-import { isOutrange } from '../util/util';
-import { OutputBoard } from './output-board.type';
+import { isOutrange } from '../../util/util';
+import { OutputBoard } from '../output-board';
 import {
   BoardStatus,
   BoardType,
@@ -9,8 +9,7 @@ import {
   HoleType,
   Neighbor,
   Position,
-  SelectedHole,
-} from './type';
+} from '../type';
 
 export interface BoardStatusInterface {
   position: Position;
@@ -150,6 +149,7 @@ export abstract class BoardStatusBase {
     this.remainingPegCount = remainingPegCount;
     this.jumpablePegCount = jumpablePegCount;
     this.lastPegPosition = lastPegPosition;
+    this.selectedPosition = position;
     return position;
   }
 

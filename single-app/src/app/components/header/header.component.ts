@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ScoreStatus } from 'src/app/types/type';
-import { ScoreService } from './score.service';
+import { BoardService } from '../board/board.service';
 
 @Component({
   selector: 'app-header',
@@ -8,7 +8,7 @@ import { ScoreService } from './score.service';
   styleUrls: ['./header.component.scss'],
 })
 export class HeaderComponent implements OnInit {
-  constructor(private scoreService: ScoreService) {}
+  constructor(private boardService: BoardService) {}
 
   scoreStatus: ScoreStatus = {
     remainingPegCount: 0,
@@ -19,10 +19,11 @@ export class HeaderComponent implements OnInit {
     takenCount: 0,
     score: 0,
     steps: 0,
+    distance: 0,
   };
 
   ngOnInit(): void {
-    this.scoreService.scoreStatus$.subscribe((status) => {
+    this.boardService.scoreStatus$.subscribe((status) => {
       this.scoreStatus = status;
     });
   }

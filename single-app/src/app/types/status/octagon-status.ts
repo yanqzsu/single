@@ -1,16 +1,16 @@
+import { isOutrange } from '../../util/util';
 import { BoardStatusBase } from './board-status.base';
-import { OutputBoard } from './output-board.type';
 import {
   Neighbor,
   Position,
   Direction,
   BoardType,
-  HoleStatus,
   HoleType,
-} from './type';
+  HoleStatus,
+} from '../type';
 
-export class RectStatus extends BoardStatusBase {
-  override boardType: BoardType = BoardType.rectangular;
+export class OctagonStatus extends BoardStatusBase {
+  override boardType: BoardType = BoardType.octagon;
 
   getNeighborPositions(position: Position): Neighbor[] {
     const neighbors: Neighbor[] = [];
@@ -35,20 +35,53 @@ export class RectStatus extends BoardStatusBase {
       target: new Position(col + 2, row),
       direction: Direction.right,
     });
-    return neighbors;
+    neighbors.push({
+      bypass: new Position(col - 1, row - 1),
+      target: new Position(col - 2, row - 2),
+      direction: Direction.upLeft,
+    });
+    neighbors.push({
+      bypass: new Position(col + 1, row - 1),
+      target: new Position(col + 2, row - 2),
+      direction: Direction.upRight,
+    });
+    neighbors.push({
+      bypass: new Position(col - 1, row + 1),
+      target: new Position(col - 2, row + 2),
+      direction: Direction.downLeft,
+    });
+    neighbors.push({
+      bypass: new Position(col + 1, row + 1),
+      target: new Position(col + 2, row + 2),
+      direction: Direction.downRight,
+    });
+    return neighbors.filter((value) => !isOutrange(value.target, this.holes));
   }
 
   getDirection(dx: number, dy: number): Direction {
+    let direction;
     const absDx = Math.abs(dx);
     const absDy = Math.abs(dy);
-    const direction =
-      absDx > absDy
-        ? dx > 0
-          ? Direction.right
-          : Direction.left
-        : dy > 0
-        ? Direction.down
-        : Direction.up;
+    const radio = absDx / absDy;
+    if (radio > 2 || radio < 0.5) {
+      direction =
+        absDx > absDy
+          ? dx > 0
+            ? Direction.right
+            : Direction.left
+          : dy > 0
+          ? Direction.down
+          : Direction.up;
+    } else {
+      direction =
+        dx > 0
+          ? dy > 0
+            ? Direction.downRight
+            : Direction.upRight
+          : dy > 0
+          ? Direction.downLeft
+          : Direction.upLeft;
+    }
 
     return direction;
   }

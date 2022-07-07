@@ -122,6 +122,7 @@ export interface ScoreStatus {
   takenCount: number;
   score: number;
   steps: number;
+  distance: number;
 }
 
 export interface SelectedHole {

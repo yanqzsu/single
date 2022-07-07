@@ -18,7 +18,7 @@ export class ClassicComponent implements OnInit {
   constructor(private boardService: BoardService) {}
 
   ngOnInit(): void {
-    this.boardService.boardStatus$.subscribe((status) => {
+    this.boardService.scoreStatus$.subscribe((status) => {
       if (status.jumpablePegCount === 0) {
         this.showGameOver();
       }
