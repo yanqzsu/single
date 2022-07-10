@@ -13,37 +13,26 @@ export class BoardService {
   private readonly TAKEN_BONUS = 4;
   private readonly COMBO_BONUS = 3;
   private readonly MAX_COMBO_BONUS = 1;
-  private _board!: OutputBoard;
-  boardStatus!: BoardStatusBase;
   private operationStack: Operation[] = [];
   private holeStatusSubject = new ReplaySubject<Hole[][]>(1);
   private scoreStatusSubject = new ReplaySubject<ScoreStatus>(1);
+  board!: OutputBoard;
+  boardStatus!: BoardStatusBase;
   holeStatus$: Observable<Hole[][]>;
   scoreStatus$: Observable<ScoreStatus>;
-
   isRevert: boolean = false;
 
   constructor() {
     this.scoreStatus$ = this.scoreStatusSubject.asObservable();
     this.holeStatus$ = this.holeStatusSubject.asObservable();
-    // random board for test
-    // this.board = BOARD_LIST[
-    //   BOARD_LIST.list[Math.floor(Math.random() * BOARD_LIST.list.length)]
-    // ] as Board;
-
-    // board for test
-    this.board = BOARD_LIST['triangleBoard11'] as OutputBoard;
-    console.log(this.board.serilize());
   }
 
-  set board(board: OutputBoard) {
-    this._board = board;
+  setBoard(board: OutputBoard, isRevert: boolean) {
+    this.board = board;
+    this.isRevert = isRevert;
     this.boardStatus = board.toBoardStatus(this.isRevert);
     this.holeStatusSubject.next(deepClone(this.boardStatus.holes));
-  }
-
-  get board(): OutputBoard {
-    return this._board;
+    this.scoreStatusSubject.next(this.updateScore());
   }
 
   setSelectedHole(position: Position): Position | undefined {
@@ -55,12 +44,7 @@ export class BoardService {
     return position;
   }
 
-  drag(
-    reverse: boolean,
-    startPosition: Position,
-    dx: number,
-    dy: number
-  ): Position | undefined {
+  drag(startPosition: Position, dx: number, dy: number): Position | undefined {
     const direction = this.boardStatus.getDirection(dx, dy);
     if (direction) {
       const endNeighbor = this.boardStatus.getNeighborPosition(
@@ -68,7 +52,7 @@ export class BoardService {
         direction
       );
       if (endNeighbor) {
-        if (this.boardStatus.move(endNeighbor, startPosition, reverse)) {
+        if (this.boardStatus.move(endNeighbor, startPosition)) {
           this.operationStack.push({
             target: endNeighbor.target,
             source: startPosition,
@@ -82,11 +66,7 @@ export class BoardService {
     return undefined;
   }
 
-  click(
-    reverse: boolean,
-    endPosition: Position,
-    startPosition: Position
-  ): Position | undefined {
+  click(endPosition: Position, startPosition: Position): Position | undefined {
     if (
       this.boardStatus.hasPeg(startPosition) &&
       !isOutrange(endPosition, this.boardStatus.holes)
@@ -97,7 +77,7 @@ export class BoardService {
         neighbor.target.isSame(endPosition)
       );
       if (neighbor) {
-        if (this.boardStatus.move(neighbor, startPosition, reverse)) {
+        if (this.boardStatus.move(neighbor, startPosition)) {
           this.operationStack.push({
             target: neighbor.target,
             source: startPosition,
@@ -114,7 +94,7 @@ export class BoardService {
   undo(): void {
     const operation = this.operationStack.pop();
     if (operation) {
-      this.click(true, operation.source, operation.target);
+      this.click(operation.source, operation.target);
     }
   }
 

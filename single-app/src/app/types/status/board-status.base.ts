@@ -30,17 +30,19 @@ export abstract class BoardStatusBase {
   jumpablePegCount = 0;
   maxWidth: number;
   height: number;
-
+  pulral: boolean = false;
   constructor(
     holesStatus: Hole[][],
     isRevert: boolean,
-    singularityPosition?: Position
+    singularityPosition?: Position,
+    pulral?: boolean
   ) {
     this.isRevert = isRevert;
     this.holes = holesStatus;
     this.firstPegPosition = singularityPosition;
     this.maxWidth = Math.max(this.holes?.[0].length, this.holes?.[1].length);
     this.height = this.holes.length;
+    this.pulral = !!pulral;
   }
 
   abstract getNeighborPositions(position: Position): Neighbor[];
@@ -95,20 +97,32 @@ export abstract class BoardStatusBase {
       for (let col = 0; col < this.holes[row].length; col++) {
         const position = new Position(col, row);
         const hole = this.getHole(position)!;
-        remainingPegCount += hole.type > HoleType.empty ? hole.type : 0;
+        remainingPegCount += hole.type >= HoleType.one ? hole.type : 0;
         const neighborPositions = this.getNeighborPositions(position);
         const jumpable = neighborPositions.some(
           (neighbor: { bypass: Position; target: Position }) => {
             const bypassType = this.getHole(neighbor.bypass)!.type;
             const targetType = this.getHole(neighbor.target)!.type;
-            if (
-              hole.type > HoleType.empty &&
-              bypassType > HoleType.empty &&
-              targetType === HoleType.empty
-            ) {
-              return true;
+            if (this.isRevert) {
+              if (
+                hole.type >= HoleType.one &&
+                (bypassType === HoleType.empty ||
+                  bypassType === HoleType.temp) &&
+                (targetType === HoleType.empty || targetType === HoleType.temp)
+              ) {
+                return true;
+              }
+              return false;
+            } else {
+              if (
+                hole.type >= HoleType.one &&
+                bypassType >= HoleType.one &&
+                targetType === HoleType.empty
+              ) {
+                return true;
+              }
+              return false;
             }
-            return false;
           }
         );
         if (jumpable) {
@@ -135,11 +149,21 @@ export abstract class BoardStatusBase {
           (neighbor: { bypass: Position; target: Position }) => {
             const bypass = this.getHole(neighbor.bypass)!;
             const target = this.getHole(neighbor.target)!;
-            if (
-              bypass.type > HoleType.empty &&
-              target.type === HoleType.empty
-            ) {
-              target.status = HoleStatus.target;
+            if (this.isRevert) {
+              if (
+                bypass.type >= HoleType.empty &&
+                (target.type === HoleType.empty ||
+                  target.type === HoleType.temp)
+              ) {
+                target.status = HoleStatus.target;
+              }
+            } else {
+              if (
+                bypass.type >= HoleType.one &&
+                target.type === HoleType.empty
+              ) {
+                target.status = HoleStatus.target;
+              }
             }
           }
         );
@@ -153,32 +177,58 @@ export abstract class BoardStatusBase {
     return position;
   }
 
-  move(neighbor: Neighbor, selected: Position, reverse: boolean): boolean {
+  move(neighbor: Neighbor, selected: Position): boolean {
     const start = this.getHole(selected)!;
     const bypass = this.getHole(neighbor.bypass)!;
     const target = this.getHole(neighbor.target)!;
     let result = false;
-    if (reverse) {
-      if (
-        start.type > HoleType.empty &&
-        bypass.type >= HoleType.empty &&
-        target.type >= HoleType.empty
-      ) {
-        start.type = start.type - 1;
-        bypass.type = bypass.type + 1;
-        target.type = target.type + 1;
-        result = true;
+    if (this.isRevert) {
+      if (this.pulral) {
+        if (
+          start.type >= HoleType.one &&
+          bypass.type >= HoleType.empty &&
+          (target.type === HoleType.empty || target.type === HoleType.temp)
+        ) {
+          start.type = start.type - 1;
+          bypass.type = Math.floor(bypass.type) + 1;
+          target.type = Math.floor(target.type) + 1;
+          result = true;
+        }
+      } else {
+        if (
+          start.type >= HoleType.one &&
+          (bypass.type === HoleType.empty || bypass.type === HoleType.temp) &&
+          (target.type === HoleType.empty || target.type === HoleType.temp)
+        ) {
+          start.type = HoleType.empty;
+          bypass.type = HoleType.one;
+          target.type = HoleType.one;
+          result = true;
+        }
       }
     } else {
-      if (
-        start.type > HoleType.empty &&
-        bypass.type > HoleType.empty &&
-        target.type === HoleType.empty
-      ) {
-        start.type = start.type - 1;
-        bypass.type = bypass.type - 1;
-        target.type = target.type + 1;
-        result = true;
+      if (this.pulral) {
+        if (
+          start.type >= HoleType.one &&
+          bypass.type >= HoleType.one &&
+          target.type === HoleType.empty
+        ) {
+          start.type = start.type - 1;
+          bypass.type = bypass.type - 1;
+          target.type = target.type + 1;
+          result = true;
+        }
+      } else {
+        if (
+          start.type === HoleType.one &&
+          bypass.type === HoleType.one &&
+          target.type === HoleType.empty
+        ) {
+          start.type = HoleType.empty;
+          bypass.type = HoleType.empty;
+          target.type = HoleType.one;
+          result = true;
+        }
       }
     }
     return result;

@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { BOARD_LIST } from 'src/app/types/board-list';
+import { OutputBoard } from 'src/app/types/output-board';
 import { BoardStatusBase } from 'src/app/types/status/board-status.base';
 import { isOutrange } from 'src/app/util/util';
 import { Hole, Position } from '../../types/type';
@@ -21,6 +23,14 @@ export class BoardComponent {
   constructor(private boardService: BoardService) {}
 
   ngOnInit(): void {
+    // random board for test
+    // this.board = BOARD_LIST[
+    //   BOARD_LIST.list[Math.floor(Math.random() * BOARD_LIST.list.length)]
+    // ] as Board;
+    this.boardService.setBoard(
+      BOARD_LIST['triangleBoard11'] as OutputBoard,
+      true
+    );
     this.boardService.holeStatus$.subscribe((holes) => {
       this.holes = holes;
       const maxWidth = Math.max(this.holes?.[0].length, this.holes?.[1].length);
@@ -81,19 +91,13 @@ export class BoardComponent {
       } else {
         // click
         this.startPosition = this.boardService.click(
-          false,
           position,
           this.startPosition
         );
       }
     } else {
       // touch and drag
-      this.startPosition = this.boardService.drag(
-        false,
-        this.startPosition,
-        dx,
-        dy
-      );
+      this.startPosition = this.boardService.drag(this.startPosition, dx, dy);
     }
     silentEvent(event);
   }

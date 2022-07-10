@@ -124,9 +124,3 @@ export interface ScoreStatus {
   steps: number;
   distance: number;
 }
-
-export interface SelectedHole {
-  hole: Hole;
-  position: Position;
-  neiborbors: Neighbor[];
-}
