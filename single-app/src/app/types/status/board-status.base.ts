@@ -151,7 +151,8 @@ export abstract class BoardStatusBase {
             const target = this.getHole(neighbor.target)!;
             if (this.isRevert) {
               if (
-                bypass.type >= HoleType.empty &&
+                (bypass.type === HoleType.empty ||
+                  bypass.type === HoleType.temp) &&
                 (target.type === HoleType.empty ||
                   target.type === HoleType.temp)
               ) {
