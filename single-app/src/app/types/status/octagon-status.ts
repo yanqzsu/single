@@ -55,17 +55,19 @@ export class OctagonStatus extends BoardStatusBase {
       target: new Position(col + 2, row + 2),
       direction: Direction.downRight,
     });
-    return neighbors.filter((value) => {
-      const targetHole = this.getHole(value.target);
-      if (!targetHole) {
-        return false;
-      }
-      if (this.isRevert) {
-        return targetHole.type !== HoleType.half;
-      } else {
-        return targetHole.type >= HoleType.empty;
-      }
-    });
+    return neighbors.filter(this.filterNeighbor.bind(this));
+
+    // return neighbors.filter((value) => {
+    //   const targetHole = this.getHole(value.target);
+    //   if (!targetHole) {
+    //     return false;
+    //   }
+    //   if (this.isRevert) {
+    //     return targetHole.type !== HoleType.half;
+    //   } else {
+    //     return targetHole.type >= HoleType.empty;
+    //   }
+    // });
   }
 
   getDirection(dx: number, dy: number): Direction {

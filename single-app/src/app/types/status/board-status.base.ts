@@ -24,7 +24,6 @@ export abstract class BoardStatusBase {
   isRevert: boolean;
   holes!: Hole[][];
   firstPegPosition?: Position; // For reserve mode
-  selectedPosition?: Position;
   lastPegPosition?: Position; // For calculate the distance between singularity and last peg
   remainingPegCount = 0;
   jumpablePegCount = 0;
@@ -88,7 +87,34 @@ export abstract class BoardStatusBase {
     return false;
   }
 
-  updateStatus(selected?: Position): Position | undefined {
+  filterNeighbor(neighbor: Neighbor): boolean {
+    const bypass = this.getHole(neighbor.bypass)!;
+    const target = this.getHole(neighbor.target)!;
+    let result = !!bypass && !!target;
+    if (!result) {
+      return result;
+    }
+    if (this.isRevert) {
+      if (this.pulral) {
+        result =
+          bypass.type >= HoleType.empty &&
+          (target.type === HoleType.empty || target.type === HoleType.temp);
+      } else {
+        result =
+          (bypass.type === HoleType.empty || bypass.type === HoleType.temp) &&
+          (target.type === HoleType.empty || target.type === HoleType.temp);
+      }
+    } else {
+      if (this.pulral) {
+        result = bypass.type >= HoleType.one && target.type === HoleType.empty;
+      } else {
+        result = bypass.type === HoleType.one && target.type === HoleType.empty;
+      }
+    }
+    return result;
+  }
+
+  updateStatus(selected?: Position): void {
     let jumpablePegCount = 0;
     let remainingPegCount = 0;
     let lastPegPosition;
@@ -97,85 +123,43 @@ export abstract class BoardStatusBase {
       for (let col = 0; col < this.holes[row].length; col++) {
         const position = new Position(col, row);
         const hole = this.getHole(position)!;
-        remainingPegCount += hole.type >= HoleType.one ? hole.type : 0;
-        const neighborPositions = this.getNeighborPositions(position);
-        const jumpable = neighborPositions.some(
-          (neighbor: { bypass: Position; target: Position }) => {
-            const bypassType = this.getHole(neighbor.bypass)!.type;
-            const targetType = this.getHole(neighbor.target)!.type;
-            if (this.isRevert) {
-              if (
-                hole.type >= HoleType.one &&
-                (bypassType === HoleType.empty ||
-                  bypassType === HoleType.temp) &&
-                (targetType === HoleType.empty || targetType === HoleType.temp)
-              ) {
-                return true;
-              }
-              return false;
-            } else {
-              if (
-                hole.type >= HoleType.one &&
-                bypassType >= HoleType.one &&
-                targetType === HoleType.empty
-              ) {
-                return true;
-              }
-              return false;
-            }
+        if (hole.type >= HoleType.one) {
+          remainingPegCount += hole.type;
+          const neighborPositions = this.getNeighborPositions(position);
+          if (neighborPositions.length > 0) {
+            hole.status = HoleStatus.jumpable;
+            jumpablePegCount += 1;
+            continue;
           }
-        );
-        if (jumpable) {
-          hole.status = HoleStatus.jumpable;
-          jumpablePegCount += 1;
-        } else {
-          hole.status = HoleStatus.normal;
         }
+        hole.status = HoleStatus.normal;
       }
     }
-    // Update selected position
-    let position;
-    if (selected && this.hasPeg(selected)) {
-      const hole = this.getHole(selected)!;
-      hole.status =
-        hole.status === HoleStatus.jumpable
-          ? HoleStatus.selectedJumpable
-          : HoleStatus.selectedUnjumpable;
-      if (remainingPegCount === 1) {
-        lastPegPosition = new Position(selected.col, selected.row);
-      } else {
+    //update selected
+    if (selected) {
+      const hole = this.getHole(selected);
+      if (hole && hole.type >= HoleType.one) {
+        hole.status =
+          hole.status === HoleStatus.jumpable
+            ? HoleStatus.selectedJumpable
+            : HoleStatus.selectedUnjumpable;
         const neighborPositions = this.getNeighborPositions(selected);
-        neighborPositions.forEach(
-          (neighbor: { bypass: Position; target: Position }) => {
-            const bypass = this.getHole(neighbor.bypass)!;
-            const target = this.getHole(neighbor.target)!;
-            if (this.isRevert) {
-              if (
-                (bypass.type === HoleType.empty ||
-                  bypass.type === HoleType.temp) &&
-                (target.type === HoleType.empty ||
-                  target.type === HoleType.temp)
-              ) {
-                target.status = HoleStatus.target;
-              }
-            } else {
-              if (
-                bypass.type >= HoleType.one &&
-                target.type === HoleType.empty
-              ) {
-                target.status = HoleStatus.target;
-              }
-            }
+        neighborPositions.forEach((neighbor) => {
+          const target = this.getHole(neighbor.target)!;
+          if (this.isRevert) {
+            target.status = HoleStatus.target;
+          } else {
+            target.status = HoleStatus.target;
           }
-        );
+        });
+        if (remainingPegCount === 1) {
+          lastPegPosition = new Position(selected.col, selected.row);
+        }
       }
-      position = selected;
     }
     this.remainingPegCount = remainingPegCount;
     this.jumpablePegCount = jumpablePegCount;
     this.lastPegPosition = lastPegPosition;
-    this.selectedPosition = position;
-    return position;
   }
 
   move(neighbor: Neighbor, selected: Position): boolean {
@@ -185,51 +169,27 @@ export abstract class BoardStatusBase {
     let result = false;
     if (this.isRevert) {
       if (this.pulral) {
-        if (
-          start.type >= HoleType.one &&
-          bypass.type >= HoleType.empty &&
-          (target.type === HoleType.empty || target.type === HoleType.temp)
-        ) {
-          start.type = start.type - 1;
-          bypass.type = Math.floor(bypass.type) + 1;
-          target.type = Math.floor(target.type) + 1;
-          result = true;
-        }
+        start.type = start.type - 1;
+        bypass.type = Math.floor(bypass.type) + 1;
+        target.type = Math.floor(target.type) + 1;
+        result = true;
       } else {
-        if (
-          start.type >= HoleType.one &&
-          (bypass.type === HoleType.empty || bypass.type === HoleType.temp) &&
-          (target.type === HoleType.empty || target.type === HoleType.temp)
-        ) {
-          start.type = HoleType.empty;
-          bypass.type = HoleType.one;
-          target.type = HoleType.one;
-          result = true;
-        }
+        start.type = HoleType.empty;
+        bypass.type = HoleType.one;
+        target.type = HoleType.one;
+        result = true;
       }
     } else {
       if (this.pulral) {
-        if (
-          start.type >= HoleType.one &&
-          bypass.type >= HoleType.one &&
-          target.type === HoleType.empty
-        ) {
-          start.type = start.type - 1;
-          bypass.type = bypass.type - 1;
-          target.type = target.type + 1;
-          result = true;
-        }
+        start.type = start.type - 1;
+        bypass.type = bypass.type - 1;
+        target.type = target.type + 1;
+        result = true;
       } else {
-        if (
-          start.type === HoleType.one &&
-          bypass.type === HoleType.one &&
-          target.type === HoleType.empty
-        ) {
-          start.type = HoleType.empty;
-          bypass.type = HoleType.empty;
-          target.type = HoleType.one;
-          result = true;
-        }
+        start.type = HoleType.empty;
+        bypass.type = HoleType.empty;
+        target.type = HoleType.one;
+        result = true;
       }
     }
     return result;

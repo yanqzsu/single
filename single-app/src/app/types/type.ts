@@ -52,8 +52,10 @@ export class Position {
     return new Position(this.col, this.row);
   }
 
-  isSame(position: Position): boolean {
-    return this.col === position.col && this.row === position.row;
+  isSame(position?: Position): boolean {
+    return (
+      !!position && this.col === position?.col && this.row === position?.row
+    );
   }
 
   validate(): boolean {

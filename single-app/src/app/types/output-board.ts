@@ -42,12 +42,14 @@ export class OutputBoard {
   map: HoleType[][];
   boardType: BoardType;
   singluarityPosition?: Position;
+  isPlural: boolean;
   width!: number;
   height!: number;
   constructor(
     map: HoleType[][],
     boardType: BoardType,
-    startPosition?: Position
+    startPosition?: Position,
+    isPlural = false
   ) {
     this.map = [...map];
     this.boardType = boardType;
@@ -57,6 +59,7 @@ export class OutputBoard {
       boardType === BoardType.hexagon
         ? map[0].length
         : Math.max(map?.[0].length, map?.[1].length);
+    this.isPlural = isPlural;
   }
 
   serilize(): string {
@@ -136,14 +139,5 @@ export class OutputBoard {
       default:
         return new RectStatus(holesStatus, isRevert, this.singluarityPosition);
     }
-    // return {
-    //   holesStatus,
-    //   edge,
-    //   jumpablePegCount: 0,
-    //   remainingPegCount: 0,
-    //   firstPegPosition: this.singluarityPosition,
-    //   selectedPosition: this.singluarityPosition,
-    //   isRevert,
-    // };
   }
 }

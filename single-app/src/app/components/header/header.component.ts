@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ScoreStatus } from 'src/app/types/type';
-import { BoardService } from '../board/board.service';
+import { AppService } from '../../app.service';
 
 @Component({
   selector: 'app-header',
@@ -8,7 +8,7 @@ import { BoardService } from '../board/board.service';
   styleUrls: ['./header.component.scss'],
 })
 export class HeaderComponent implements OnInit {
-  constructor(private boardService: BoardService) {}
+  constructor(private boardService: AppService) {}
 
   scoreStatus: ScoreStatus = {
     remainingPegCount: 0,

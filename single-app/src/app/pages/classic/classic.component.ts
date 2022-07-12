@@ -1,5 +1,5 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { BoardService } from '../../components/board/board.service';
+import { AppService } from '../../app.service';
 
 @Component({
   selector: 'app-classic',
@@ -15,7 +15,7 @@ export class ClassicComponent implements OnInit {
   @ViewChild('ranking')
   ranking!: TemplateRef<any>;
 
-  constructor(private boardService: BoardService) {}
+  constructor(private boardService: AppService) {}
 
   ngOnInit(): void {
     this.boardService.scoreStatus$.subscribe((status) => {

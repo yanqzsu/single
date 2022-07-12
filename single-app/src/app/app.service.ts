@@ -1,320 +1,127 @@
 import { Injectable } from '@angular/core';
-
-export type GridType =
-  | 'none'
-  | 'center'
-  | 'left'
-  | 'right'
-  | 'top'
-  | 'bottom'
-  | 'top-left'
-  | 'top-right'
-  | 'bottom-left'
-  | 'bottom-right';
-
-export interface Position {
-  x: number;
-  y: number;
-}
-
-export type MoveDirection = 'up' | 'down' | 'left' | 'right';
-
-export interface Operation {
-  direction: MoveDirection;
-  targetPosition: Position;
-  sourcePosition: Position;
-}
-
-export interface Status {
-  remainingCount: number;
-  mobileCellCount: number;
-  currentCombo: number;
-  maxCombo: number;
-  comboCount: number;
-  takenCount: number;
-  score: number;
-  steps: number;
-}
-
-export enum PieceStatus {
-  'none' = -1,
-  'empty' = 0,
-  'hasCell' = 1,
-  'mobile' = 2,
-}
+import { Observable, ReplaySubject } from 'rxjs';
+import { BOARD_LIST } from 'src/app/types/board-list';
+import { BoardStatusBase } from 'src/app/types/status/board-status.base';
+import { deepClone, isOutrange } from 'src/app/util/util';
+import { OutputBoard } from './types/output-board';
+import { Hole, Operation, Position, ScoreStatus } from './types/type';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AppService {
-  private readonly STEP_BONUS = 10;
-  private readonly COMBO_BONUS = 2;
-  private readonly MAX_COMBO_BONUS = 10;
+  private readonly TAKEN_BONUS = 4;
+  private readonly COMBO_BONUS = 3;
+  private readonly MAX_COMBO_BONUS = 1;
+  private operationStack: Operation[] = [];
+  private holeStatusSubject = new ReplaySubject<Hole[][]>(1);
+  private scoreStatusSubject = new ReplaySubject<ScoreStatus>(1);
+  board!: OutputBoard;
+  boardStatus!: BoardStatusBase;
+  holeStatus$: Observable<Hole[][]>;
+  scoreStatus$: Observable<ScoreStatus>;
+  isRevert: boolean = false;
 
-  gridArray: GridType[][] = [
-    ['none', 'none', 'top-left', 'top', 'top-right', 'none', 'none'],
-    ['none', 'none', 'left', 'center', 'right', 'none', 'none'],
-    ['top-left', 'top', 'center', 'center', 'center', 'top', 'top-right'],
-    ['left', 'center', 'center', 'center', 'center', 'center', 'right'],
-    [
-      'bottom-left',
-      'bottom',
-      'center',
-      'center',
-      'center',
-      'bottom',
-      'bottom-right',
-    ],
-    ['none', 'none', 'left', 'center', 'right', 'none', 'none'],
-    ['none', 'none', 'bottom-left', 'bottom', 'bottom-right', 'none', 'none'],
-  ];
-  pieceArray = [
-    [
-      PieceStatus.none,
-      PieceStatus.none,
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-      PieceStatus.none,
-      PieceStatus.none,
-    ],
-    [
-      PieceStatus.none,
-      PieceStatus.none,
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-      PieceStatus.none,
-      PieceStatus.none,
-    ],
-    [
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-    ],
-    [
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-      PieceStatus.empty,
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-    ],
-    [
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-    ],
-    [
-      PieceStatus.none,
-      PieceStatus.none,
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-      PieceStatus.none,
-      PieceStatus.none,
-    ],
-    [
-      PieceStatus.none,
-      PieceStatus.none,
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-      PieceStatus.hasCell,
-      PieceStatus.none,
-      PieceStatus.none,
-    ],
-  ];
+  constructor() {
+    this.scoreStatus$ = this.scoreStatusSubject.asObservable();
+    this.holeStatus$ = this.holeStatusSubject.asObservable();
+  }
 
-  selectedPosition: Position = {
-    x: -1,
-    y: -1,
-  };
+  setBoard(board: OutputBoard, isRevert: boolean) {
+    this.board = board;
+    this.isRevert = isRevert;
+    this.operationStack = [] as Operation[];
+    this.boardStatus = board.toBoardStatus(this.isRevert);
+    this.boardStatus.updateStatus();
+    this.holeStatusSubject.next(deepClone(this.boardStatus.holes));
+    this.scoreStatusSubject.next(this.updateScore());
+  }
 
-  scoreStatus: Status = {
-    remainingCount: 0,
-    mobileCellCount: 0,
-    currentCombo: 0,
-    maxCombo: 0,
-    comboCount: 0,
-    takenCount: 0,
-    score: 0,
-    steps: 0,
-  };
-
-  operationStack: Operation[] = [];
-
-  constructor() {}
-
-  move(direction: MoveDirection) {
-    let targetPosition: Position;
-    let bypassPosition: Position;
-    switch (direction) {
-      case 'right':
-        targetPosition = {
-          x: this.selectedPosition.x + 2,
-          y: this.selectedPosition.y,
-        };
-        bypassPosition = {
-          x: this.selectedPosition.x + 1,
-          y: this.selectedPosition.y,
-        };
-        break;
-      case 'left':
-        targetPosition = {
-          x: this.selectedPosition.x - 2,
-          y: this.selectedPosition.y,
-        };
-        bypassPosition = {
-          x: this.selectedPosition.x - 1,
-          y: this.selectedPosition.y,
-        };
-        break;
-      case 'down':
-        targetPosition = {
-          x: this.selectedPosition.x,
-          y: this.selectedPosition.y + 2,
-        };
-        bypassPosition = {
-          x: this.selectedPosition.x,
-          y: this.selectedPosition.y + 1,
-        };
-        break;
-      case 'up':
-        targetPosition = {
-          x: this.selectedPosition.x,
-          y: this.selectedPosition.y - 2,
-        };
-        bypassPosition = {
-          x: this.selectedPosition.x,
-          y: this.selectedPosition.y - 1,
-        };
-        break;
-      default:
-        return;
+  setSelectedHole(position: Position): void {
+    if (this.boardStatus.hasPeg(position)) {
+      this.boardStatus.updateStatus(position);
+      this.holeStatusSubject.next(deepClone(this.boardStatus.holes));
     }
-    if (this.isOutrange(targetPosition) || this.isOutrange(bypassPosition)) {
-      return;
+  }
+
+  drag(startPosition: Position, dx: number, dy: number): Position | undefined {
+    const direction = this.boardStatus.getDirection(dx, dy);
+    if (direction) {
+      const endNeighbor = this.boardStatus.getNeighborPosition(
+        startPosition,
+        direction
+      );
+      if (endNeighbor) {
+        if (this.boardStatus.move(endNeighbor, startPosition)) {
+          this.operationStack.push({
+            target: endNeighbor.target,
+            source: startPosition,
+          });
+          this.setSelectedHole(endNeighbor.target);
+          this.scoreStatusSubject.next(this.updateScore());
+          return endNeighbor.target;
+        }
+      }
     }
-    const bypassPiece = this.pieceArray[bypassPosition?.y][bypassPosition?.x];
-    const targetPiece = this.pieceArray[targetPosition?.y][targetPosition?.x];
-    if (bypassPiece > 0 && targetPiece === 0) {
-      this.pieceArray[bypassPosition?.y][bypassPosition?.x] = PieceStatus.empty;
-      this.pieceArray[targetPosition?.y][targetPosition?.x] =
-        PieceStatus.hasCell;
-      this.pieceArray[this.selectedPosition.y][this.selectedPosition.x] =
-        PieceStatus.empty;
-      this.operationStack.push({
-        direction,
-        targetPosition: targetPosition,
-        sourcePosition: { ...this.selectedPosition },
-      });
-      this.updateStatus();
-      this.pieceArray = this.pieceArray.map((arr) => arr.slice());
-      this.selectedPosition = {
-        x: targetPosition.x,
-        y: targetPosition.y,
-      };
+    return undefined;
+  }
+
+  click(endPosition: Position, startPosition: Position): Position | undefined {
+    if (
+      this.boardStatus.hasPeg(startPosition) &&
+      !isOutrange(endPosition, this.boardStatus.holes)
+    ) {
+      const neighborPositions =
+        this.boardStatus.getNeighborPositions(startPosition);
+      const neighbor = neighborPositions.find((neighbor) =>
+        neighbor.target.isSame(endPosition)
+      );
+      if (neighbor) {
+        if (this.boardStatus.move(neighbor, startPosition)) {
+          this.operationStack.push({
+            target: neighbor.target,
+            source: startPosition,
+          });
+          this.setSelectedHole(neighbor.target);
+          this.scoreStatusSubject.next(this.updateScore());
+          return neighbor.target;
+        }
+      }
     }
+    return startPosition;
   }
 
   undo(): void {
-    if (this.operationStack.length <= 0) {
-      return;
+    const operation = this.operationStack.pop();
+    if (operation) {
+      this.click(operation.source, operation.target);
     }
-    const lastOperation = this.operationStack.pop()!;
-    let targetPosition: Position;
-    let bypassPosition: Position;
-    switch (lastOperation.direction) {
-      case 'left':
-        targetPosition = {
-          x: lastOperation.targetPosition.x + 2,
-          y: lastOperation.targetPosition.y,
-        };
-        bypassPosition = {
-          x: lastOperation.targetPosition.x + 1,
-          y: lastOperation.targetPosition.y,
-        };
-        break;
-      case 'right':
-        targetPosition = {
-          x: lastOperation.targetPosition.x - 2,
-          y: lastOperation.targetPosition.y,
-        };
-        bypassPosition = {
-          x: lastOperation.targetPosition.x - 1,
-          y: lastOperation.targetPosition.y,
-        };
-        break;
-      case 'up':
-        targetPosition = {
-          x: lastOperation.targetPosition.x,
-          y: lastOperation.targetPosition.y + 2,
-        };
-        bypassPosition = {
-          x: lastOperation.targetPosition.x,
-          y: lastOperation.targetPosition.y + 1,
-        };
-        break;
-      case 'down':
-        targetPosition = {
-          x: lastOperation.targetPosition.x,
-          y: lastOperation.targetPosition.y - 2,
-        };
-        bypassPosition = {
-          x: lastOperation.targetPosition.x,
-          y: lastOperation.targetPosition.y - 1,
-        };
-        break;
-      default:
-        return;
-    }
-    if (this.isOutrange(targetPosition) || this.isOutrange(bypassPosition)) {
-      return;
-    }
-    this.pieceArray[bypassPosition?.y][bypassPosition?.x] = PieceStatus.hasCell;
-    this.pieceArray[targetPosition?.y][targetPosition?.x] = PieceStatus.hasCell;
-    this.pieceArray[lastOperation.targetPosition.y][
-      lastOperation.targetPosition.x
-    ] = PieceStatus.empty;
-    this.updateStatus();
-    this.pieceArray = this.pieceArray.map((arr) => arr.slice());
-    this.selectedPosition = {
-      x: targetPosition.x,
-      y: targetPosition.y,
-    };
   }
 
-  updateStatus(): void {
-    const status: Status = {
-      remainingCount: 0,
-      mobileCellCount: 0,
+  updateScore(): ScoreStatus {
+    const {
+      remainingPegCount,
+      jumpablePegCount,
+      lastPegPosition,
+      firstPegPosition,
+    } = this.boardStatus;
+    const status: ScoreStatus = {
+      remainingPegCount,
+      jumpablePegCount,
       currentCombo: 0,
       maxCombo: 0,
       comboCount: 0,
       takenCount: 0,
       score: 0,
       steps: 0,
+      distance: 0,
     };
-    this.updateRemaining(status);
+
     for (let index = 0; index < this.operationStack.length; index++) {
       const operation = this.operationStack[index];
       if (index > 0) {
         const previousOperation = this.operationStack[index - 1];
-        if (
-          this.isSamePosition(
-            previousOperation.targetPosition,
-            operation.sourcePosition
-          )
-        ) {
+        if (previousOperation.target.isSame(operation.source)) {
           status.currentCombo += 1;
           status.comboCount += 1;
           if (status.currentCombo > status.maxCombo) {
@@ -330,83 +137,67 @@ export class AppService {
         status.steps = 1;
       }
     }
+    this.getScore(status, firstPegPosition, lastPegPosition);
+    return status;
+  }
+
+  getScore(
+    status: ScoreStatus,
+    firstPegPosition?: Position,
+    lastPegPosition?: Position
+  ) {
     status.score =
-      Math.pow(status.comboCount, this.COMBO_BONUS) +
-      status.takenCount * this.STEP_BONUS +
+      status.takenCount * this.TAKEN_BONUS +
+      status.comboCount * this.COMBO_BONUS +
       status.maxCombo * this.MAX_COMBO_BONUS;
-    this.scoreStatus = { ...status };
-    console.log(status);
-    // if (status.mobileCellCount === 0) {
-    //   this.showGameOver();
-    // } else {
-    //   this.clearOverlay();
-    // }
+    if (lastPegPosition && firstPegPosition) {
+      status.distance = lastPegPosition.getDistance(firstPegPosition);
+    }
   }
 
-  updateRemaining(status: Status): void {
-    let remainingCount = 0;
-    let mobileCellCount = 0;
-    for (let y = 0; y < this.pieceArray.length; y++) {
-      const row = this.pieceArray[y];
-      for (let x = 0; x < row.length; x++) {
-        const cell = row[x];
-        if (cell > 0) {
-          remainingCount += 1;
-          const neighbor = [
-            [y - 1, x, y - 2, x],
-            [y + 1, x, y + 2, x],
-            [y, x + 1, y, x + 2],
-            [y, x - 1, y, x - 2],
-          ];
-          let mobile = false;
-          for (let index = 0; index < neighbor.length; index++) {
-            const bypassPosition = {
-              y: neighbor[index][0],
-              x: neighbor[index][1],
-            };
-            const targetPosition = {
-              y: neighbor[index][2],
-              x: neighbor[index][3],
-            };
-
-            if (
-              !this.isOutrange(bypassPosition) &&
-              !this.isOutrange(targetPosition) &&
-              this.pieceArray[bypassPosition.y][bypassPosition.x] >
-                PieceStatus.empty &&
-              this.pieceArray[targetPosition.y][targetPosition.x] ===
-                PieceStatus.empty
-            ) {
-              mobile = true;
-              break;
-            }
-          }
-          if (mobile) {
-            mobileCellCount += 1;
-            this.pieceArray[y][x] = PieceStatus.mobile;
-          } else {
-            this.pieceArray[y][x] = PieceStatus.hasCell;
-          }
-        }
-      }
-    }
-    status.remainingCount = remainingCount;
-    status.mobileCellCount = mobileCellCount;
-  }
-
-  isOutrange(position: Position, xMax?: number, yMax?: number): boolean {
-    if (!xMax) {
-      xMax = this.gridArray[0].length - 1;
-    }
-    if (!yMax) {
-      yMax = this.gridArray.length - 1;
-    }
-    return (
-      position.x < 0 || position.x > xMax || position.y < 0 || position.y > yMax
-    );
-  }
-
-  isSamePosition(a: Position, b: Position) {
-    return a.x === b.x && a.y === b.y;
+  /**
+   * http://www.gibell.net/pegsolitaire/Catalogs/English33/index.htm
+   * @param boardStatus
+   */
+  private test(): void {
+    const board = BOARD_LIST['englishBoard'];
+    const scoreStatus1 = {
+      maxCombo: 5,
+      comboCount: 13,
+      takenCount: 31,
+      score: 0,
+      remainingPegCount: 0,
+      jumpablePegCount: 0,
+      currentCombo: 0,
+      steps: 0,
+      distance: 0,
+    };
+    this.getScore(scoreStatus1, new Position(0, 0), new Position(5, 5));
+    console.log(scoreStatus1.score);
+    const scoreStatus2 = {
+      maxCombo: 5,
+      comboCount: 13,
+      takenCount: 31,
+      score: 0,
+      remainingPegCount: 0,
+      jumpablePegCount: 0,
+      currentCombo: 0,
+      steps: 0,
+      distance: 0,
+    };
+    this.getScore(scoreStatus2, new Position(3, 3), new Position(5, 5));
+    console.log(scoreStatus2.score);
+    const scoreStatus3 = {
+      maxCombo: 6,
+      comboCount: 14,
+      takenCount: 31,
+      score: 0,
+      remainingPegCount: 0,
+      jumpablePegCount: 0,
+      currentCombo: 0,
+      steps: 0,
+      distance: 0,
+    };
+    this.getScore(scoreStatus3, new Position(0, 6), new Position(5, 5));
   }
 }

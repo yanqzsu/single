@@ -53,7 +53,8 @@ export const BOARD_LIST: {
       [-1, -1, 1, 1, 1, -1, -1],
     ],
     BoardType.octagon,
-    new Position(3, 3)
+    new Position(3, 3),
+    true
   ),
 
   triangleBoard7: new OutputBoard(

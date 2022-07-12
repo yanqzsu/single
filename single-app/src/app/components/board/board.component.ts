@@ -1,11 +1,9 @@
 import { Component } from '@angular/core';
 import { BOARD_LIST } from 'src/app/types/board-list';
 import { OutputBoard } from 'src/app/types/output-board';
-import { BoardStatusBase } from 'src/app/types/status/board-status.base';
-import { isOutrange } from 'src/app/util/util';
 import { Hole, Position } from '../../types/type';
 import { isTouchEvent, getEventPosition, silentEvent } from '../../util/dom';
-import { BoardService } from './board.service';
+import { AppService } from '../../app.service';
 
 @Component({
   selector: 'app-board',
@@ -20,18 +18,18 @@ export class BoardComponent {
   holes!: Hole[][];
   boardlass: string = '';
 
-  constructor(private boardService: BoardService) {}
+  constructor(private appService: AppService) {}
 
   ngOnInit(): void {
     // random board for test
     // this.board = BOARD_LIST[
     //   BOARD_LIST.list[Math.floor(Math.random() * BOARD_LIST.list.length)]
     // ] as Board;
-    this.boardService.setBoard(
-      BOARD_LIST['triangleBoard11'] as OutputBoard,
+    this.appService.setBoard(
+      BOARD_LIST['englishDiagonalBoard2'] as OutputBoard,
       true
     );
-    this.boardService.holeStatus$.subscribe((holes) => {
+    this.appService.holeStatus$.subscribe((holes) => {
       this.holes = holes;
       const maxWidth = Math.max(this.holes?.[0].length, this.holes?.[1].length);
       if (maxWidth > 9) {
@@ -52,7 +50,7 @@ export class BoardComponent {
       return; // Ignore if still touching with one or more fingers
     }
     const position = new Position(col, row);
-    if (this.boardService.boardStatus.hasPeg(position)) {
+    if (this.appService.boardStatus.hasPeg(position)) {
       this.startPosition = position;
     }
     const touchPosition = getEventPosition(event);
@@ -85,19 +83,17 @@ export class BoardComponent {
       const position = new Position(col, row);
       if (position.isSame(this.startPosition)) {
         // just refresh
-        this.startPosition = this.boardService.setSelectedHole(
-          this.startPosition
-        );
+        this.appService.setSelectedHole(this.startPosition);
       } else {
         // click
-        this.startPosition = this.boardService.click(
+        this.startPosition = this.appService.click(
           position,
           this.startPosition
         );
       }
     } else {
       // touch and drag
-      this.startPosition = this.boardService.drag(this.startPosition, dx, dy);
+      this.startPosition = this.appService.drag(this.startPosition, dx, dy);
     }
     silentEvent(event);
   }

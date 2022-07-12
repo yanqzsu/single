@@ -1,5 +1,6 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { BoardService } from '../../components/board/board.service';
+import { ScoreStatus } from 'src/app/types/type';
+import { AppService } from '../../app.service';
 
 @Component({
   selector: 'app-custom',
@@ -15,10 +16,10 @@ export class CustomComponent implements OnInit {
   @ViewChild('ranking')
   ranking!: TemplateRef<any>;
 
-  constructor(private boardService: BoardService) {}
+  constructor(private boardService: AppService) {}
 
   ngOnInit(): void {
-    this.boardService.scoreStatus$.subscribe((status) => {
+    this.boardService.scoreStatus$.subscribe((status: ScoreStatus) => {
       if (status.jumpablePegCount === 0) {
         this.showGameOver();
       }

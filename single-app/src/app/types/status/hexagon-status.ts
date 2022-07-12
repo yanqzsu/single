@@ -77,17 +77,7 @@ export class HexagonStatus extends BoardStatusBase {
         direction: Direction.downRight,
       });
     }
-    return neighbors.filter((value) => {
-      const targetHole = this.getHole(value.target);
-      if (!targetHole) {
-        return false;
-      }
-      if (this.isRevert) {
-        return targetHole.type !== HoleType.half;
-      } else {
-        return targetHole.type >= HoleType.empty;
-      }
-    });
+    return neighbors.filter(this.filterNeighbor.bind(this));
   }
 
   getDirection(dx: number, dy: number): Direction {
