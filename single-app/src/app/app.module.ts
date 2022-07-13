@@ -11,6 +11,9 @@ import { BoardComponent } from './components/board/board.component';
 import { HoleComponent } from './components/hole/hole.component';
 import { ModalComponent } from './elements/modal/modal.component';
 import { ButtonComponent } from './elements/button/button.component';
+import { MineComponent } from './pages/mine/mine.component';
+import { TutorialComponent } from './pages/tutotial/tutorial.component';
+import { MenuComponent } from './elements/menu/menu.component';
 
 @NgModule({
   declarations: [
@@ -18,8 +21,11 @@ import { ButtonComponent } from './elements/button/button.component';
     HomeComponent,
     ClassicComponent,
     CustomComponent,
+    MineComponent,
+    TutorialComponent,
     ButtonComponent,
     HoleComponent,
+    MenuComponent,
     ModalComponent,
     BoardComponent,
     HeaderComponent,

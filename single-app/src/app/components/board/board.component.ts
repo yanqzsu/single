@@ -30,7 +30,7 @@ export class BoardComponent {
       true
     );
     this.appService.holeStatus$.subscribe((holes) => {
-      this.holes = holes;
+      this.holes = [...holes];
       const maxWidth = Math.max(this.holes?.[0].length, this.holes?.[1].length);
       if (maxWidth > 9) {
         this.boardlass = 'size-11';

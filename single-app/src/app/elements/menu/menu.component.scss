@@ -1,0 +1,27 @@
+@import "../../../variables.scss";
+
+:host {
+  all: unset;
+  display: inline-block;
+  border-radius: 3px;
+  text-align: center;
+  text-decoration: none;
+  color: $text-color;
+  height: 40px;
+  line-height: 42px;
+  position: relative;
+}
+
+:host::before{
+  content: '';
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  bottom: 1px;
+  left: 1px;
+  z-index: 1;
+  // background: #58a;
+  transform: skew(-45deg);
+  border: 1px solid #58a;
+}
+
