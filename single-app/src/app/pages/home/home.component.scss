@@ -1,5 +1,48 @@
 @import "../../../variables.scss";
 
+
+.logo {
+    background-image: url("/assets/logo.svg");
+    background-origin: border-box;
+    background-position: center center;
+    background-repeat: no-repeat;
+    width: 60vmin;
+    height: 60vmin;
+    margin: 20px auto;
+    transform: rotate(180deg);
+    transition: transform 0.4s ease-in-out;
+}
+
+.logo.fade-in {
+    transform: rotate(360deg);
+}
+
+h1 {
+    text-align: center;
+}
+
+ol {
+    all: unset;
+}
+
 ol > li{
   list-style-type: none;
+  text-align: center;
+  margin: 20px auto;
+}
+
+
+a[app-menu] {
+    transition: width 0.4s ease-out, opacity 0.2s ease-in;
+    width: 0;
+    opacity: 0;
+    overflow: hidden;
+    span {
+        white-space: nowrap;
+    }
+}
+
+a[app-menu].fade-in {
+    opacity: 1;
+    width: 200px;
 }

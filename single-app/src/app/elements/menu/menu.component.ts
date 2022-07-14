@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef } from '@angular/core';
 
 @Component({
   selector: 'button[app-menu], a[app-menu]',
@@ -6,4 +6,6 @@ import { Component } from '@angular/core';
   styleUrls: ['./menu.component.scss'],
   template: `<ng-content></ng-content>`,
 })
-export class MenuComponent {}
+export class MenuComponent {
+  constructor(public element: ElementRef<HTMLElement>){}
+}
