@@ -1,6 +1,6 @@
 @import "../../../variables.scss";
-
-.logo {
+header {
+  .logo {
     background-image: url("/assets/logo.svg");
     background-origin: border-box;
     background-position: center center;
@@ -11,18 +11,21 @@
     margin: 16px auto;
     transform: rotate(180deg);
     transition: transform 0.4s ease-in-out;
-}
-
-.logo.fade-in {
+  }
+  
+  .logo.fade-in {
     transform: rotate(360deg);
+  }
+  
+  h1 {
+    text-align: center;
+    font-size: min(60px, 14vmin);
+  }
 }
 
-h1 {
-    text-align: center;
-}
 
 ol {
-    all: unset;
+  all: unset;
 }
 
 ol > li{
@@ -33,24 +36,24 @@ ol > li{
 
 
 a[app-menu] {
-    transition: width 0.4s ease-out, opacity 0.2s ease-in;
-    width: 0;
-    opacity: 0;
-    overflow: hidden;
-    span {
-        white-space: nowrap;
-    }
+  transition: width 0.4s ease-out, opacity 0.2s ease-in;
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+  span {
+      white-space: nowrap;
+  }
 }
 
 a[app-menu].fade-in {
-    opacity: 1;
-    width: 60vmin;
+  opacity: 1;
+  width: 60vmin;
 }
 
 footer {
-    position: fixed;
-    bottom: 5px;
-    text-align: center;
-    left: 0;
-    right: 0;
+  position: fixed;
+  bottom: 5px;
+  text-align: center;
+  left: 0;
+  right: 0;
 }
