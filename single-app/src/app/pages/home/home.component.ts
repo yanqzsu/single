@@ -18,6 +18,8 @@ import { MenuComponent } from 'src/app/elements/menu/menu.component';
 export class HomeComponent implements OnInit, AfterViewInit {
   constructor(private render2: Renderer2) {}
 
+  year = new Date().getFullYear();
+
   @ViewChildren(MenuComponent)
   menuItems!: QueryList<MenuComponent>;
 

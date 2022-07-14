@@ -1,15 +1,16 @@
-<div class="container">
-  <header>
-    <div #logo class="logo"></div>
-    <h1>独行棋</h1>
-  </header>
-  <nav>
-    <ol>
-      <li><a app-menu routerLink="/classic" routerLinkActive="active" ariaCurrentWhenActive="page"><span>经典模式</span></a></li>
-      <li><a app-menu routerLink="/custom" routerLinkActive="active" ariaCurrentWhenActive="page"><span>自创模式</span></a></li>
-      <li><a app-menu routerLink="/mine" routerLinkActive="active" ariaCurrentWhenActive="page"><span>个人中心</span></a></li>
-      <li><a app-menu routerLink="/tutorial" routerLinkActive="active" ariaCurrentWhenActive="page"><span>简单教程</span></a></li>
-    </ol>
-  </nav>
-</div>
 
+<header>
+  <div #logo class="logo"></div>
+  <h1>独行棋</h1>
+</header>
+<nav>
+  <ol>
+    <li><a app-menu routerLink="/classic" routerLinkActive="active" ariaCurrentWhenActive="page"><span>经典模式</span></a></li>
+    <li><a app-menu routerLink="/custom" routerLinkActive="active" ariaCurrentWhenActive="page"><span>自创模式</span></a></li>
+    <li><a app-menu routerLink="/mine" routerLinkActive="active" ariaCurrentWhenActive="page"><span>个人中心</span></a></li>
+    <li><a app-menu routerLink="/tutorial" routerLinkActive="active" ariaCurrentWhenActive="page"><span>简单教程</span></a></li>
+  </ol>
+</nav>
+<footer>
+  All rights reserved. @{{ year }}
+</footer>
