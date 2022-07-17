@@ -21,14 +21,6 @@ export class BoardComponent {
   constructor(private appService: AppService) {}
 
   ngOnInit(): void {
-    // random board for test
-    // this.board = BOARD_LIST[
-    //   BOARD_LIST.list[Math.floor(Math.random() * BOARD_LIST.list.length)]
-    // ] as Board;
-    this.appService.setBoard(
-      BOARD_LIST['englishDiagonalBoard2'] as OutputBoard,
-      true
-    );
     this.appService.holeStatus$.subscribe((holes) => {
       this.holes = [...holes];
       const maxWidth = Math.max(this.holes?.[0].length, this.holes?.[1].length);

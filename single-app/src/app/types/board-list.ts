@@ -9,9 +9,9 @@ export const BOARD_LIST: {
     'englishBoard',
     'englishDiagonalBoard',
     'englishDiagonalBoard2',
-    'triangleBoard',
-    'triangleBoard2',
-    'triangleBoard3',
+    'triangleBoard7',
+    'triangleBoard5',
+    'triangleBoard10',
     'triangleBoard11',
   ],
   englishBoard: new OutputBoard(

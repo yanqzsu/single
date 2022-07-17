@@ -1,4 +1,6 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { BOARD_LIST } from 'src/app/types/board-list';
+import { OutputBoard } from 'src/app/types/output-board';
 import { AppService } from '../../app.service';
 
 @Component({
@@ -15,18 +17,30 @@ export class ClassicComponent implements OnInit {
   @ViewChild('ranking')
   ranking!: TemplateRef<any>;
 
-  constructor(private boardService: AppService) {}
+  board!: OutputBoard;
+
+  constructor(private appService: AppService) {}
 
   ngOnInit(): void {
-    this.boardService.scoreStatus$.subscribe((status) => {
+    this.appService.scoreStatus$.subscribe((status) => {
       if (status.jumpablePegCount === 0) {
         this.showGameOver();
       }
     });
+    // random board for test
+    this.board = BOARD_LIST[
+      BOARD_LIST.list[Math.floor(Math.random() * BOARD_LIST.list.length)]
+    ] as OutputBoard;
+    // BOARD_LIST['englishDiagonalBoard2'] as OutputBoard,
+    this.appService.setBoard(this.board, false);
   }
 
   undo(): void {
-    this.boardService.undo();
+    this.appService.undo();
+  }
+
+  newGame(): void {
+    this.appService.setBoard(this.board, false);
   }
 
   showRanking(): void {

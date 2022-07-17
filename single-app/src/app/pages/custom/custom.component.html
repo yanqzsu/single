@@ -5,7 +5,7 @@
 
   <div class="operation">
     <button app-button (click)="undo()">悔棋</button>
-    <button app-button>新游戏</button>
+    <button app-button (click)="newGame()">新游戏</button>
     <button app-button routerLink="/home">首页</button>
     <button app-button (click)="showRanking()">排行榜</button>
   </div>

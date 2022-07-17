@@ -162,12 +162,13 @@ export abstract class BoardStatusBase {
     this.lastPegPosition = lastPegPosition;
   }
 
-  move(neighbor: Neighbor, selected: Position): boolean {
+  move(neighbor: Neighbor, selected: Position, inputRevert?: boolean): boolean {
     const start = this.getHole(selected)!;
     const bypass = this.getHole(neighbor.bypass)!;
     const target = this.getHole(neighbor.target)!;
+    const isRevert = inputRevert ?? this.isRevert;
     let result = false;
-    if (this.isRevert) {
+    if (isRevert) {
       if (this.pulral) {
         start.type = start.type - 1;
         bypass.type = Math.floor(bypass.type) + 1;

@@ -4,7 +4,7 @@ import { BOARD_LIST } from 'src/app/types/board-list';
 import { BoardStatusBase } from 'src/app/types/status/board-status.base';
 import { deepClone, isOutrange } from 'src/app/util/util';
 import { OutputBoard } from './types/output-board';
-import { Hole, Operation, Position, ScoreStatus } from './types/type';
+import { Hole, Neighbor, Operation, Position, ScoreStatus } from './types/type';
 
 @Injectable({
   providedIn: 'root',
@@ -47,19 +47,19 @@ export class AppService {
   drag(startPosition: Position, dx: number, dy: number): Position | undefined {
     const direction = this.boardStatus.getDirection(dx, dy);
     if (direction) {
-      const endNeighbor = this.boardStatus.getNeighborPosition(
+      const neighbor = this.boardStatus.getNeighborPosition(
         startPosition,
         direction
       );
-      if (endNeighbor) {
-        if (this.boardStatus.move(endNeighbor, startPosition)) {
+      if (neighbor) {
+        if (this.boardStatus.move(neighbor, startPosition)) {
           this.operationStack.push({
-            target: endNeighbor.target,
+            neighbor: neighbor,
             source: startPosition,
           });
-          this.setSelectedHole(endNeighbor.target);
+          this.setSelectedHole(neighbor.target);
           this.scoreStatusSubject.next(this.updateScore());
-          return endNeighbor.target;
+          return neighbor.target;
         }
       }
     }
@@ -79,7 +79,7 @@ export class AppService {
       if (neighbor) {
         if (this.boardStatus.move(neighbor, startPosition)) {
           this.operationStack.push({
-            target: neighbor.target,
+            neighbor: neighbor,
             source: startPosition,
           });
           this.setSelectedHole(neighbor.target);
@@ -94,7 +94,14 @@ export class AppService {
   undo(): void {
     const operation = this.operationStack.pop();
     if (operation) {
-      this.click(operation.source, operation.target);
+      const neighbor: Neighbor = {...operation.neighbor, target: operation.source};
+      this.boardStatus.move(
+        neighbor,
+        operation.neighbor.target,
+        !this.isRevert
+      );
+      this.setSelectedHole(operation.source);
+      this.scoreStatusSubject.next(this.updateScore());
     }
   }
 
@@ -121,7 +128,7 @@ export class AppService {
       const operation = this.operationStack[index];
       if (index > 0) {
         const previousOperation = this.operationStack[index - 1];
-        if (previousOperation.target.isSame(operation.source)) {
+        if (previousOperation.neighbor.target.isSame(operation.source)) {
           status.currentCombo += 1;
           status.comboCount += 1;
           if (status.currentCombo > status.maxCombo) {

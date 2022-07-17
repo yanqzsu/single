@@ -87,7 +87,7 @@ export enum BoardType {
 }
 
 export interface Operation {
-  target: Position;
+  neighbor: Neighbor;
   source: Position;
 }
 
