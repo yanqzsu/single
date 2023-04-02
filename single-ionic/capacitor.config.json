@@ -1,0 +1,6 @@
+{
+  "appId": "com.3me",
+  "appName": "single-ionic",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}

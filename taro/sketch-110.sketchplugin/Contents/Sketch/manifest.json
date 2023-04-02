@@ -1,0 +1,60 @@
+{
+  "name": "📙 墨刀-设计协作",
+  "description": "一站式设计交付工具。更新完成后请重启Sketch。",
+  "icon": "icon.png",
+  "author": "",
+  "authorEmail": "support@mockingbot.com",
+  "homepage": "https://modao.cc/feature/aboard/",
+  "version": "1.1.0",
+  "appcast": "https://modao.cc/sketch-aboard-appcast.xml",
+  "identifier": "com.mockingBot.aboard-plugin",
+  "compatibleVersion": "47",
+  "bundleVersion": "1",
+  "disableCocoaScriptPreprocessor": true,
+  "sketchInfo": {
+    "host": "https://modao.cc",
+    "debugLog": false,
+    "debugRetry": false,
+    "permise": false,
+    "permisePing": true,
+    "fetchBuffer": false
+  },
+  "commands": [
+    {
+      "script": "plugin.js",
+      "handler": "openWindow",
+      "shortcut": "cmd shift x",
+      "name": "上传画板",
+      "identifier": "openWindow"
+    },
+    {
+      "script": "plugin.js",
+      "handler": "helpCenter",
+      "name": "帮助中心",
+      "identifier": "helpCenter"
+    },
+    {
+      "script": "plugin.js",
+      "handler": "clearCache",
+      "name": "清除缓存",
+      "identifier": "clearCache"
+    },
+    {
+      "name": "Selection changed",
+      "identifier": "selection-changed",
+      "script": "plugin.js",
+      "handlers": {
+        "actions": {
+          "SelectionChanged.finish": "onSelectionChanged"
+        }
+      }
+    }
+  ],
+  "menu": {
+    "items": [
+      "openWindow",
+      "helpCenter",
+      "clearCache"
+    ]
+  }
+}
